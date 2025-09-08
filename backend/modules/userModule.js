@@ -1,55 +1,5 @@
+// models/User.js
 const mongoose = require("mongoose");
-
-const absenceSchema = new mongoose.Schema(
-  {
-    startDate: {
-      type: Date,
-      required: true,
-    },
-    endDate: {
-      type: Date,
-      required: true,
-      validate: {
-        validator: function (end) {
-          // 'this' is the subdocument
-          return !this.startDate || this.startDate <= end;
-        },
-        message: "endDate must be greater than or equal to startDate",
-      },
-    },
-    type: {
-      type: String,
-      enum: ["maladie", "conge", "absence"],
-      required: true,
-    },
-    proofUrl: {
-      type: String,
-      default: null,
-      validate: {
-        validator: function (v) {
-          if (!v) return true; // optional
-          // simple URL sanity check
-          return /^(https?:\/\/)[^\s$.?#].[^\s]*$/i.test(v);
-        },
-        message: "proofUrl must be a valid URL",
-      },
-    },
-    status: {
-      type: String,
-      enum: ["pending", "accepted"],
-      default: "pending",
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    removed: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  { _id: true }
-);
 
 const userSchema = new mongoose.Schema(
   {
@@ -78,16 +28,32 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "RH", "DRH"],
       default: "user",
     },
-    absences: {
-      type: [absenceSchema],
-      default: [],
+    // removed embedded absences here — we will use a virtual to populate Absence docs
+    endDate: {
+      type: Date,
+      default: function () {
+        return this.createdAt;
+      },
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true, versionKey: false },
+    toObject: { virtuals: true, versionKey: false },
   }
 );
 
-// explicit indexes for uniqueness (unique in schema creates an index but being explicit is safer)
+// Virtual for reverse populate: user.absences
+userSchema.virtual("absences", {
+  ref: "Absence", // model to use
+  localField: "_id", // find Absence where `user` === `_id`
+  foreignField: "user",
+  justOne: false,
+  options: { sort: { createdAt: -1 } }, // latest first
+});
+
+// add any indexes you want on user fields
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
 
 module.exports = mongoose.model("User", userSchema);

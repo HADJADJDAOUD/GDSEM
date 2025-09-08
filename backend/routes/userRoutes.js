@@ -1,3 +1,4 @@
+// routes/userRoute.js
 const express = require("express");
 const {
   login,
@@ -7,44 +8,62 @@ const {
   deleteAbsence,
   getPendingAbsences,
   getUserAbsences,
+  getMyLatestAbsence,
+  getAcceptedAbsences,
+  declineAbsence,
+  getMyRejectedAbsences,
 } = require("../controllers/userController.js");
-const {protect, restrictTo} = require("../utils/middleware.js");
+const { protect, restrictTo, verifyToken } = require("../utils/middleware.js");
+const uploadRouter = require("./upload.js");
 const router = express.Router();
 
-
-
 /////////////////
-//////////////
-// this is what normal user can do 
-//////////////////
+// normal user routes
+/////////////////
 
-router.post("/login", login); /// working
-router.post("/absences", protect, createAbsence); // working
-router.get("/absences/me", protect, getMyAbsences);  // working 
-
+router.post("/login", login); // working
+router.post("/absences", protect, createAbsence); // create absence (owner)
+router.get("/absences/me", protect, getMyAbsences); // get my absences
+router.get("/verifyToken", verifyToken);
+router.get("/getMyLastAbs/:userId", protect, getMyLatestAbsence);
+router.get("/myRejectedAbsences", protect, getMyRejectedAbsences);
+////////////////////////////////////////////
+// admin (RH/DRH) routes + owner-capable routes
 //////////////////////////////////////////////////
-///////////// here where can do RH and DRH /////////////    
-//////////////////////////////////////////////////
 
-
-router.delete("/absences/:userId/:absenceId/delete", protect, restrictTo("RH", "DRH"), deleteAbsence); // ensure params in request match
+// Accept an absence (kept restricted to RH/DRH — change if you want owners to be able to do this)
 router.patch(
-  "/absences/:userId/:absenceId/accept",
+  "/absences/:absenceId/accept",
   protect,
   restrictTo("RH", "DRH"),
-  acceptAbsence // working
+  acceptAbsence
 );
+router.post("/upload", uploadRouter);
+// Delete an absence (soft remove). Controller allows owner OR RH/DRH.
+// Do NOT restrict here so the owner can delete their own absence; controller enforces permissions.
+router.delete("/absences/:absenceId/delete", protect, deleteAbsence);
+
+// List pending absences across users (RH dashboard)
 router.get(
   "/absences/pending",
   protect,
   restrictTo("RH", "DRH"),
-  getPendingAbsences   // working 
+  getPendingAbsences
 );
 router.get(
-  "/:id/absences",
+  "/absences/accepted",
   protect,
   restrictTo("RH", "DRH"),
-  getUserAbsences // working
+  getAcceptedAbsences
 );
+router.post(
+  "/absences/:absenceId/decline",
+  protect,
+  restrictTo("RH", "DRH"),
+  declineAbsence
+);
+
+// Admin: get a specific user's absences
+router.get("/:id/absences", protect, restrictTo("RH", "DRH"), getUserAbsences);
 
 module.exports = router;

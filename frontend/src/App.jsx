@@ -1,14 +1,51 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; // create a stub or replace later
+import Dashboard from "./pages/Dashboard";
+import HRDashboard from "./pages/HRDashboard"; // page for RH role
+
+// Wrapper for protected routes
+function ProtectedRoute({ children, role }) {
+  const user = useSelector((state) => state.auth.user); // adjust to your slice
+  if (!user) return <Navigate to="/login" replace />;
+
+  // if role is required, check it
+  if (role && user.role !== role) {
+    return <Navigate to="/dashboard" replace />; // fallback for wrong role
+  }
+
+  return children;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public route */}
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Default user dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute role="user">
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RH dashboard */}
+        <Route
+          path="/hr"
+          element={
+            <ProtectedRoute role="RH">
+              <HRDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

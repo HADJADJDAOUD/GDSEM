@@ -47,16 +47,37 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        // action.payload expected: { token, user }
+        // The API response is nested, so we access the data.
+        const { token, data } = action.payload;
+        const { user } = data;
+
+        // Extract specific fields you want to store
+        const { username, email, endDate } = user;
+
         state.status = "succeeded";
-        state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.token = token;
+        // You can store the full user object in the Redux state if needed
+        state.user = user;
         state.error = null;
-        // persist
-        if (action.payload.token)
-          localStorage.setItem("token", action.payload.token);
-        if (action.payload.user)
-          localStorage.setItem("user", JSON.stringify(action.payload.user));
+
+        // Persist data to local storage
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+        if (username) {
+          localStorage.setItem("username", username);
+        }
+        if (email) {
+          localStorage.setItem("email", email);
+        }
+        if (endDate) {
+          localStorage.setItem("endDate", endDate);
+        }
+
+        // Also, update the main user object in local storage to be safe
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
