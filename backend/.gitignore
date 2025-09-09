@@ -8,3 +8,7 @@ node_modules
 dist
 build
 *.local
+
+uploads
+./uploads
+/uploads/*

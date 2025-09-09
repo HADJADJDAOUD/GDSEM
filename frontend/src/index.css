@@ -1,5 +1,39 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* src/styles/fonts.css */
+@font-face {
+  font-family: "Eurostile";
+  src: url("/fonts/Eurostile-Regular.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Eurostile";
+  src: url("/fonts/Eurostile-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Eurostile-Extended";
+  src: url("/fonts/Eurostile-Extended.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Eurostile";
+  src: url("/fonts/Eurostile_Regular_Oblique.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Eurostile";
+  src: url("/fonts/Eurostile-Black.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+}
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -86,14 +120,11 @@ select {
 }
 
 button {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: none;
-  background: var(--primary-green);
-  color: white;
-  font-weight: 600;
   cursor: pointer;
+ font-family: eurostile, sans-serif;
+  font-weight: 400;
+  transition: background 0.3s ease;
+  border-radius: 12px;
 }
 
 .error {
