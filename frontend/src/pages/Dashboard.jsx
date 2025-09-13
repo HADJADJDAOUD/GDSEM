@@ -31,7 +31,7 @@ export default function Dashboard() {
           {user?.role === "user" && (
             <>
               {view === "calendar" && <CalendarView />}
-              {view === "chart" && <ChartLineInteractive />}
+              
               {view === "request" && <AbsenceRequest />}
               {view === "rejected" && <RejectedAbsences />}
             </>

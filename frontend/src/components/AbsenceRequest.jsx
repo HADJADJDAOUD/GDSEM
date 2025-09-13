@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from "../api/api";
-import { uploadProof } from "../api/firebase";
+
+import {
+  FiCalendar,
+  FiFileText,
+  FiUpload,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiTrash2,
+  FiInfo,
+  FiEye,
+} from "react-icons/fi";
 
 export default function AbsenceRequest() {
   const [sDate, setSDate] = useState(null);
@@ -17,45 +27,34 @@ export default function AbsenceRequest() {
 
   let user = JSON.parse(localStorage.getItem("user"));
   let userId = user._id;
-  console.log("userId:", userId);
+
   useEffect(() => {
     const stored = localStorage.getItem("endDate");
     if (stored) setUserEndDate(new Date(stored));
     fetchLastAbsence();
   }, []);
+
   const fetchLastAbsence = async () => {
     try {
       const res = await api.get(`/getMyLastAbs/${userId}`);
-      console.log("fetchLastAbsence response:", res.data);
       setLastAbsence(res.data.data || null);
-      setMsg(res.data.message || "Fetched successfully"); // show backend message
     } catch (err) {
-      console.error("fetchLastAbsence error:", err);
       setLastAbsence(null);
       setMsg(err?.response?.data?.message || "Failed to fetch last absence");
     }
   };
-  console.log("21334");
 
   const deletePending = async () => {
     if (!lastAbsence) return;
 
     try {
       const res = await api.delete(`/absences/${lastAbsence._id}/delete`);
-      console.log("deletePending response:", res.data);
-      setMsg(res.data.message || "Pending request deleted"); // show backend message
-      console.log(
-        "Deleted absence and it will fetch the lastAbsence:",
-        lastAbsence._id
-      );
-      fetchLastAbsence(); // refresh
+      setMsg(res.data.message || "Pending request deleted");
+      fetchLastAbsence();
     } catch (err) {
-      console.error("deletePending error:", err);
       setMsg(err?.response?.data?.message || "Failed to delete absence");
     }
   };
-
-  // helper: inclusive days between two dates
 
   const daysInclusive = (start, end) => {
     if (!start || !end) return 0;
@@ -66,7 +65,7 @@ export default function AbsenceRequest() {
 
   const validate = () => {
     if (!sDate || !eDate) return "Start and end date required";
-    if (eDate < sDate) return "endDate must be >= startDate";
+    if (eDate < sDate) return "End date must be after or equal to start date";
 
     if (userEndDate) {
       const minStart = new Date(
@@ -91,12 +90,11 @@ export default function AbsenceRequest() {
 
     const days = daysInclusive(sDate, eDate);
     if (atype === "conge" && !(days === 15 || days === 30)) {
-      return "For 'conge' the duration must be exactly 15 or 30 days.";
+      return "For 'conge', the duration must be exactly 15 or 30 days.";
     }
 
     return null;
   };
-  console.log("validate():");
 
   const submit = async (ev) => {
     ev.preventDefault();
@@ -108,7 +106,6 @@ export default function AbsenceRequest() {
     try {
       let proofUrl = null;
 
-      // upload to your server first (avoids CORS issues with firebase)
       if (file && atype !== "absence") {
         const formData = new FormData();
         formData.append("file", file);
@@ -139,7 +136,6 @@ export default function AbsenceRequest() {
       setEDate(null);
       setFile(null);
     } catch (err) {
-      console.error("submit error:", err);
       setMsg(
         err?.response?.data?.message ||
           err?.response?.data?.error ||
@@ -164,180 +160,407 @@ export default function AbsenceRequest() {
 
   const endMinDate = sDate || startMinDate;
 
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case "maladie":
+        return <FiFileText className="w-5 h-5" />;
+      case "conge":
+        return <FiCalendar className="w-5 h-5" />;
+      case "absence":
+        return <FiInfo className="w-5 h-5" />;
+      default:
+        return <FiFileText className="w-5 h-5" />;
+    }
+  };
+
+  const getMsgIcon = (message) => {
+    if (message?.includes("Failed")) {
+      return <FiAlertCircle className="w-4 h-4 mr-1" />;
+    }
+    return <FiCheckCircle className="w-4 h-4 mr-1" />;
+  };
+
   return (
-    <div
-      style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #f6fff7 100%)",
-        padding: 18,
-        borderRadius: 12,
-        boxShadow: "0 8px 30px rgba(6, 95, 52, 0.08)",
-        maxWidth: 720,
-        margin: "0 auto",
-        fontFamily: "Inter, Roboto, system-ui, sans-serif",
-      }}
-    >
-      <h3 style={{ marginTop: 0, color: "#064f32" }}>Demande d'absence</h3>
-
-      {/* if there's a pending request show it */}
-      {lastAbsence && lastAbsence.status === "pending" ? (
-        <div
-          style={{ padding: 12, border: "1px solid #e6efe8", borderRadius: 8 }}
-        >
-          <p>
-            <b>Pending request:</b> {lastAbsence.type} from{" "}
-            {new Date(lastAbsence.startDate).toISOString().split("T")[0]} to{" "}
-            {new Date(lastAbsence.endDate).toISOString().split("T")[0]}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Demande d'Absence
+          </h1>
+          <p className="text-gray-600">
+            Soumettez votre demande d'absence avec facilité
           </p>
-          {lastAbsence.proofUrl && (
-            <div>
-              <p>
-                Proof:{" "}
-                <a href={lastAbsence.proofUrl} target="_blank" rel="noreferrer">
-                  View
-                </a>
-              </p>
-
-              {/* if it's an image, preview it */}
-              {/\.(jpg|jpeg|png|gif|webp)$/i.test(lastAbsence.proofUrl) && (
-                <a href={lastAbsence.proofUrl} target="_blank" rel="noreferrer">
-                  <img
-                    src={lastAbsence.proofUrl}
-                    alt="Proof"
-                    style={{
-                      maxWidth: "200px",
-                      marginTop: "8px",
-                      borderRadius: "8px",
-                    }}
-                  />
-                </a>
-              )}
-            </div>
-          )}
-          <button
-            onClick={deletePending}
-            style={{
-              padding: "8px 12px",
-              background: "#b00020",
-              color: "white",
-              border: "none",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Delete Request
-          </button>
-          {msg && <div style={{ marginTop: 8, color: "#0b6a3a" }}>{msg}</div>}
         </div>
-      ) : (
-        // else show form
-        <form
-          onSubmit={submit}
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}
-        >
-          <div>
-            <div style={{ fontSize: 13, color: "#0b6a3a", marginBottom: 6 }}>
-              Type
-            </div>
-            <select
-              value={atype}
-              onChange={(e) => {
-                setAtype(e.target.value);
-                setSDate(null);
-                setEDate(null);
-                setFile(null);
-                setMsg(null);
-              }}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                border: "1px solid #e6efe8",
-                fontSize: 14,
-                width: "100%",
-              }}
-            >
-              <option value="maladie">Maladie (any days)</option>
-              <option value="conge">Conge (must be 15 or 30 days)</option>
-              <option value="absence">Absence (no proof required)</option>
-            </select>
-          </div>
 
-          <div>
-            <div style={{ fontSize: 13, color: "#0b6a3a", marginBottom: 6 }}>
-              Start
-            </div>
-            <DatePicker
-              selected={sDate}
-              onChange={(d) => setSDate(d)}
-              minDate={startMinDate}
-              dateFormat="yyyy-MM-dd"
-              placeholderText={
-                startMinDate
-                  ? `Earliest: ${startMinDate.toISOString().slice(0, 10)}`
-                  : "Select start date"
-              }
-            />
-          </div>
-
-          <div>
-            <div style={{ fontSize: 13, color: "#0b6a3a", marginBottom: 6 }}>
-              End
-            </div>
-            <DatePicker
-              selected={eDate}
-              onChange={(d) => setEDate(d)}
-              minDate={endMinDate}
-              dateFormat="yyyy-MM-dd"
-            />
-          </div>
-
-          {atype !== "absence" && (
-            <div>
-              <div style={{ fontSize: 13, color: "#0b6a3a", marginBottom: 6 }}>
-                Proof (optional)
+        {/* Pending Request Card */}
+        {lastAbsence && lastAbsence.status === "pending" ? (
+          <div className="bg-white rounded-xl shadow-lg border border-green-100 p-6 mb-8 animate-fadeIn">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center">
+                <div className="bg-yellow-100 p-2 rounded-full mr-3">
+                  <FiAlertCircle className="text-yellow-600 w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Demande en attente
+                  </h2>
+                  <p className="text-gray-600">
+                    Votre demande est en cours de traitement
+                  </p>
+                </div>
               </div>
-              <input
-                type="file"
-                onChange={(e) => setFile(e.target.files[0])}
-                accept="image/*,application/pdf"
-                style={{
-                  padding: "8px",
-                  borderRadius: 8,
-                  border: "1px solid #e6efe8",
-                  fontSize: 14,
-                }}
-              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: "10px 14px",
-              background: "#0b6a3a",
-              color: "white",
-              border: "none",
-              borderRadius: 10,
-              fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? "Sending..." : "Send request"}
-          </button>
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Type:</span>
+                  <span className="font-medium ml-2">
+                    {lastAbsence.type === "maladie"
+                      ? "Maladie"
+                      : lastAbsence.type === "conge"
+                      ? "Congé"
+                      : "Absence"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Durée:</span>
+                  <span className="font-medium ml-2">
+                    {daysInclusive(
+                      new Date(lastAbsence.startDate),
+                      new Date(lastAbsence.endDate)
+                    )}{" "}
+                    jours
+                  </span>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="text-gray-500">Période:</span>
+                  <span className="font-medium ml-2">
+                    {new Date(lastAbsence.startDate).toLocaleDateString(
+                      "fr-FR"
+                    )}{" "}
+                    au{" "}
+                    {new Date(lastAbsence.endDate).toLocaleDateString("fr-FR")}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          {msg && (
-            <div
-              style={{
-                fontSize: 13,
-                marginTop: 6,
-                color: msg.includes("Failed") ? "#b00020" : "#0b6a3a",
-              }}
+            {lastAbsence.proofUrl && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  <FiEye className="w-4 h-4 mr-1 text-blue-600" />
+                  Justificatif joint :
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <a
+                    href={lastAbsence.proofUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <FiFileText className="w-4 h-4 mr-1" />
+                    Voir le document
+                  </a>
+
+                  {/\.(jpg|jpeg|png|gif|webp)$/i.test(lastAbsence.proofUrl) && (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden max-w-xs shadow-sm">
+                      <img
+                        src={lastAbsence.proofUrl}
+                        alt="Proof"
+                        className="h-24 w-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={deletePending}
+              className="flex items-center px-5 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              {msg}
-            </div>
-          )}
-        </form>
-      )}
+              <FiTrash2 className="w-4 h-4 mr-2" />
+              Supprimer la demande
+            </button>
+
+            {msg && (
+              <div
+                className={`mt-4 flex items-center text-sm p-3 rounded-lg ${
+                  msg.includes("Failed")
+                    ? "bg-red-50 text-red-800 border border-red-200"
+                    : "bg-green-50 text-green-800 border border-green-200"
+                }`}
+              >
+                {getMsgIcon(msg)}
+                {msg}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Form Section */
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <form onSubmit={submit} className="space-y-6">
+              {/* Type Selection */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                  <span className="mr-2">{getTypeIcon(atype)}</span>
+                  Type d'absence
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    {
+                      value: "maladie",
+                      label: "Maladie",
+                      desc: "Pour une maladie (durée flexible)",
+                    },
+                    {
+                      value: "conge",
+                      label: "Congé",
+                      desc: "Congé annuel (15 ou 30 jours)",
+                    },
+                    {
+                      value: "absence",
+                      label: "Absence",
+                      desc: "Absence sans justificatif",
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setAtype(option.value);
+                        setSDate(null);
+                        setEDate(null);
+                        setFile(null);
+                        setMsg(null);
+                      }}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        atype === option.value
+                          ? "border-green-500 bg-green-50 shadow-md transform scale-105"
+                          : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                      }`}
+                    >
+                      <div className="flex items-center mb-1">
+                        <span className="text-sm font-medium text-gray-800 mr-2">
+                          {option.label}
+                        </span>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            option.value === "maladie"
+                              ? "bg-blue-100 text-blue-800"
+                              : option.value === "conge"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {option.value === "maladie"
+                            ? "Flexible"
+                            : option.value === "conge"
+                            ? "Fixe"
+                            : "Simple"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">{option.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date Range */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <FiCalendar className="w-4 h-4 mr-2" />
+                    Date de début
+                  </label>
+                  <DatePicker
+                    selected={sDate}
+                    onChange={(d) => setSDate(d)}
+                    minDate={startMinDate}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText={
+                      startMinDate
+                        ? `Plus tôt: ${startMinDate.toLocaleDateString(
+                            "fr-FR"
+                          )}`
+                        : "Sélectionnez une date"
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow text-gray-800"
+                    disabledKeyboardNavigation
+                  />
+                  {startMinDate && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ⚠️ Vous devez attendre après le{" "}
+                      {startMinDate.toLocaleDateString("fr-FR")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <FiCalendar className="w-4 h-4 mr-2" />
+                    Date de fin
+                  </label>
+                  <DatePicker
+                    selected={eDate}
+                    onChange={(d) => setEDate(d)}
+                    minDate={endMinDate}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Sélectionnez une date"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow text-gray-800"
+                    disabledKeyboardNavigation
+                  />
+                </div>
+              </div>
+
+              {/* Proof Upload */}
+              {atype !== "absence" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <FiUpload className="w-4 h-4 mr-2" />
+                    Justificatif (facultatif)
+                  </label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl border-gray-300 hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {file ? (
+                          <div className="text-center">
+                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                              <FiCheckCircle className="text-green-600" />
+                            </div>
+                            <p className="text-sm text-gray-700 font-medium">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {Math.round(file.size / 1024)} Ko
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-8 h-8 text-gray-400 mb-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              ></path>
+                            </svg>
+                            <p className="mb-2 text-sm text-gray-600">
+                              <span className="font-semibold">
+                                Cliquez pour télécharger
+                              </span>{" "}
+                              ou faites glisser un fichier
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              JPG, PNG, PDF jusqu'à 5MB
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        onChange={(e) => setFile(e.target.files[0])}
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Pour les maladies et congés, un justificatif est recommandé.
+                  </p>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  loading
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Envoi en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiCheckCircle className="w-5 h-5" />
+                    <span>Envoyer la demande</span>
+                  </>
+                )}
+              </button>
+
+              {/* Message Display */}
+              {msg && (
+                <div
+                  className={`p-4 rounded-xl text-sm flex items-center ${
+                    msg.includes("Failed")
+                      ? "bg-red-50 text-red-800 border border-red-200"
+                      : "bg-green-50 text-green-800 border border-green-200"
+                  }`}
+                >
+                  {getMsgIcon(msg)}
+                  {msg}
+                </div>
+              )}
+
+              {/* Validation Tips */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div className="flex items-start">
+                  <FiInfo className="text-blue-500 w-5 h-5 mt-0.5 mr-3 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p>
+                      <strong>Conseils:</strong>
+                    </p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>
+                        Pour les congés: seules les durées de 15 ou 30 jours
+                        sont acceptées
+                      </li>
+                      <li>
+                        La date de début doit être au moins 24h après votre
+                        dernière absence
+                      </li>
+                      <li>
+                        Les justificatifs peuvent être des certificats médicaux
+                        ou documents officiels
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

@@ -18,7 +18,6 @@ export default function Login() {
     const verifyUser = async () => {
       if (token) {
         try {
-          
           await api.get("/verifyToken", {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -34,7 +33,7 @@ export default function Login() {
     };
     verifyUser();
   }, [token, nav, dispatch, user]);
-
+  console.log({ status, error, token, user });
   const handleSubmit = async (e) => {
     e.preventDefault();
     const email = e.target.email.value.trim();
@@ -180,3 +179,4 @@ export default function Login() {
     </div>
   );
 }
+

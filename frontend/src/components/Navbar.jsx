@@ -30,7 +30,7 @@ export default function NavbarWithMenu({ view, setView }) {
         ]
       : [
           { key: "calendar", label: "Calendrier" },
-          { key: "chart", label: "Graphique" },
+          
           { key: "request", label: "Demande d'absence" },
           { key: "rejected", label: "Absences refusées" },
         ];
