@@ -1,0 +1,309 @@
+/* FormHeuresSup.module.css
+   Component-scoped CSS (CSS Module)
+   Adjusted vertical spacing and A4 print fit
+*/
+
+/* Page variables */
+:root {
+  --page-width: 210mm;
+  --page-height: 297mm;
+  --page-margin: 12mm; /* printable margin on A4 */
+  --screen-side-padding: 20px;
+  --screen-vertical-padding: 18px; /* top & bottom important ones */
+  --print-vertical-padding: 10mm; /* smaller for print to maximize space */
+}
+
+/* --- General (note: move body to global if you prefer) --- */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.45;
+  color: #000;
+  margin: 0;
+  padding: 0; /* keep app-level padding out of the printed area */
+  background-color: #f9f9f9;
+}
+
+/* Container sized for screen but also prepared for print */
+.formContainer {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: var(--screen-vertical-padding) var(--screen-side-padding);
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  /* ensure consistent box model when printed */
+}
+
+/* Reduce vertical whitespace slightly for denser content on smaller viewports */
+@media (max-width: 480px) {
+  .formContainer {
+    padding: 12px 12px;
+  }
+}
+
+/* --- Header & Directorate Info --- */
+.headerInfo {
+  text-align: left;
+  margin-bottom: 18px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.headerInfo p {
+  margin: 0;
+}
+.headerInfo p:first-child {
+  font-weight: bold;
+}
+
+/* --- Title box / main title --- */
+.titleBox {
+  text-align: center;
+  border: 1px solid #000;
+  background-color: #eee;
+  padding: 8px 12px;
+  margin-bottom: 24px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.mainDeclarationTitle {
+  text-align: center;
+  font-size: 16px;
+  margin: 20px 0;
+  text-decoration: underline;
+}
+
+/* --- Declaration Body --- */
+.declarationBody {
+  font-size: 14px;
+  margin-bottom: 40px;
+}
+
+/* --- Fields (kept from transport.css) --- */
+.fieldLine {
+  display: block;
+  margin-bottom: 8px; /* slight increase for legibility */
+  text-align: left;
+}
+
+.inputLine {
+  border: none;
+  border-bottom: 1px dashed #000;
+  padding: 0 5px;
+  margin-left: 5px;
+  font-size: 14px;
+  outline: none;
+  background: transparent;
+}
+
+.inputLineLong {
+  width: 70%;
+}
+.inputLineMedium {
+  width: 30%;
+}
+.inputLineShort {
+  width: 15%;
+}
+.inputLineExtraShort {
+  width: 10%;
+  text-align: center;
+}
+
+/* --- Signature (matches field styling) --- */
+.signatureSection {
+  display: block;
+  margin-top: 18px; /* important vertical spacing above signatures */
+  margin-bottom: 18px; /* important vertical spacing below signatures */
+  padding: 0;
+  font-size: 14px;
+  text-align: left;
+}
+
+.signatureTitle {
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: underline;
+  margin-bottom: 8px;
+  text-align: start;
+}
+
+/* Each signature row behaves like the fields */
+.signatureLine {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.labelSignature,
+.label {
+  font-weight: bold;
+  margin-right: 8px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+/* signature input with dashed underline */
+.signatureField {
+  flex: 1;
+  font-size: 14px;
+  padding: 0 5px;
+  border: none;
+  border-bottom: 1px dashed #000;
+  margin-left: 5px;
+  background: transparent;
+  outline: none;
+}
+
+.signatureSpace {
+  height: 60px;
+  margin-top: 10px;
+}
+
+/* signature columns fallback */
+.signatureColumn {
+  display: inline-block;
+  vertical-align: top;
+  width: 48%;
+  box-sizing: border-box;
+  padding-right: 4%;
+}
+
+/* --- Sub-info / header variant classes from form.css --- */
+.formHeader {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.departmentTitle {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.formInfo {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.formSubtitle {
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: underline;
+  margin-bottom: 4px;
+}
+
+.instruction {
+  font-size: 12px;
+  color: #444;
+}
+
+/* fields section extras */
+.fieldsSection {
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+/* checkbox styles */
+.checkboxGroup {
+  margin: 6px 0 15px 15px;
+}
+
+.checkboxItem {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.checkboxItem input {
+  margin-right: 4px;
+}
+
+/* footer */
+.formFooter {
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+  margin-top: 12px;
+}
+
+/* ----------------- PRINT/ A4 rules ----------------- */
+/* Force single-A4 sizing and margins when printing */
+@page {
+  size: A4 portrait;
+  margin: var(--page-margin);
+}
+
+/* Ensure printed page uses smaller font & tight vertical spacing to fit on one page */
+@media print {
+  :root {
+    --screen-side-padding: 0;
+    --screen-vertical-padding: var(--print-vertical-padding);
+  }
+
+  html,
+  body {
+    height: 100%;
+    background: #fff;
+  }
+
+  /* Make container occupy printable area */
+  .formContainer {
+    width: calc(var(--page-width) - 2 * var(--page-margin));
+    max-width: none;
+    margin: 0 auto;
+    padding: var(--print-vertical-padding) 12mm; /* top/bottom important */
+    box-sizing: border-box;
+    border: none; /* avoid printing border if undesired */
+    /* exact height equals printable area — subtract top/bottom margins (page-margin) */
+    min-height: calc(var(--page-height) - 2 * var(--page-margin));
+    /* prevent unexpected page breaks inside the container */
+    page-break-inside: avoid;
+    overflow: hidden;
+    font-size: 11px; /* slightly smaller to help fitting */
+    line-height: 1.3;
+  }
+
+  /* Reduce a few margins to make sure it fits one page */
+  .titleBox {
+    margin-bottom: 12px;
+    padding: 6px 10px;
+  }
+  .mainDeclarationTitle {
+    margin: 12px 0;
+  }
+  .declarationBody {
+    margin-bottom: 20px;
+  }
+
+  .fieldLine,
+  .signatureLine {
+    margin-bottom: 6px;
+  }
+
+  .signatureTitle {
+    margin-bottom: 6px;
+  }
+  .signatureSpace {
+    height: 40px;
+  }
+
+  .formFooter {
+    position: absolute;
+    bottom: calc(
+      var(--page-margin) - 2mm
+    ); /* place footer near bottom of printable area */
+    left: calc(var(--page-margin));
+    right: calc(var(--page-margin));
+    text-align: center;
+    font-size: 10px;
+    color: #555;
+  }
+
+  /* Hide any UI-only elements if present */
+  .noPrint,
+  .hide-on-print {
+    display: none !important;
+  }
+}

@@ -1,0 +1,123 @@
+/* --- General Styles --- */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  color: #000;
+  margin: 0;
+  padding: 40px;
+  background-color: #f9f9f9;
+}
+
+.form-container {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #fff;
+  border: 1px solid #ccc; /* Formal border */
+}
+
+/* --- Header & Directorate Info --- */
+.header-info {
+  text-align: left;
+  margin-bottom: 30px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.header-info p {
+  margin: 0;
+}
+.header-info p:first-child {
+  font-weight: bold;
+}
+
+/* --- Main Title Box --- */
+.title-box {
+  text-align: center;
+  border: 1px solid #000;
+  background-color: #eee; /* Light shading to match the printout */
+  padding: 10px 15px;
+  margin-bottom: 40px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* --- Declaration Title --- */
+.main-declaration-title {
+  text-align: center;
+  font-size: 16px;
+  margin: 30px 0 30px 0;
+  text-decoration: underline;
+}
+
+/* --- Declaration Body --- */
+.declaration-body {
+  font-size: 14px;
+  margin-bottom: 60px;
+}
+
+.field-line {
+  display: block;
+  margin-bottom: 20px; /* Space between lines */
+  text-align: left;
+}
+
+.input-line {
+  border: none;
+  border-bottom: 1px dashed #000; /* Dashed line for input */
+  padding: 0 5px;
+  margin-left: 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-line.long {
+  width: 70%;
+}
+.input-line.medium {
+  width: 30%;
+}
+.input-line.short {
+  width: 15%;
+}
+.input-line.extra-short {
+  width: 10%;
+  text-align: center;
+}
+
+/* --- Signature Section --- */
+.signature-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding: 0 50px; /* Padding for separation */
+  font-size: 14px;
+  text-align: center;
+}
+
+.signature-column {
+  width: 40%;
+}
+
+.signature-space {
+  height: 60px; /* Space reserved for the actual signature/stamp */
+  margin-top: 10px;
+}
+
+/* --- Bottom Note Section --- */
+.bottom-note-section {
+  margin: 30px 0 20px 0;
+  font-size: 12px;
+}
+
+/* --- Important Footer Box --- */
+.important-box {
+  border-top: 1px solid #000;
+  padding-top: 15px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.important-box p {
+  margin: 5px 0;
+  text-align: left;
+}

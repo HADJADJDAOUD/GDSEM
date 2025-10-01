@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import HRDashboard from "./pages/HRDashboard"; // page for RH role
+import UserAbsencesLayout from "./components/PageWithNavbarForUserAbsences";
 
 // Wrapper for protected routes
 function ProtectedRoute({ children, role }) {
@@ -22,10 +23,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route
+          path="/absences/user/:userId/:view?"
+          element={
+            <ProtectedRoute>
+              <UserAbsencesLayout />
+            </ProtectedRoute>
+          }
+        />
         {/* Public route */}
         <Route path="/login" element={<Login />} />
 
-        {/* Default user dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -34,7 +42,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
         {/* RH dashboard */}
         <Route
           path="/hr"
@@ -44,7 +51,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

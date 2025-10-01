@@ -12,6 +12,7 @@ const {
   getAcceptedAbsences,
   declineAbsence,
   getMyRejectedAbsences,
+  getUserRejectedAbsences,
 } = require("../controllers/userController.js");
 const { protect, restrictTo, verifyToken } = require("../utils/middleware.js");
 const uploadRouter = require("./upload.js");
@@ -62,6 +63,7 @@ router.post(
   restrictTo("RH", "DRH"),
   declineAbsence
 );
+router.get("/userRejectedAbsences/:userId", protect, getUserRejectedAbsences);
 
 // Admin: get a specific user's absences
 router.get("/:id/absences", protect, restrictTo("RH", "DRH"), getUserAbsences);

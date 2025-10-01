@@ -1,0 +1,253 @@
+  
+/* --- General Styles --- */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #000;
+  margin: 0;
+  padding: 30px;
+  background-color: #f9f9f9;
+}
+
+.form-container {
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 20px 40px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Official Header/Banner --- */
+.official-header {
+  display: flex;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+  margin: -20px -40px 30px -40px;
+  border-bottom: 2px solid #000;
+}
+
+.logo-placeholder {
+  width: 60px;
+  height: 60px;
+  background-color: #fff;
+  border: 1px solid #000;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.header-text {
+  flex-grow: 1;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.arabic-text {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.french-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.sub-text {
+  font-size: 12px;
+  margin: 0;
+}
+
+.bold-underline {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* --- Titles --- */
+.declaration-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: underline;
+  margin-bottom: 5px;
+}
+
+.form-subtitle {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+/* --- Consecutif Section (Radio Buttons) --- */
+.consecutif-section {
+  font-size: 14px;
+  margin-left: 20px;
+  margin-bottom: 30px;
+}
+
+.consecutif-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.question-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.question-text {
+  width: 300px;
+}
+
+.radio-option {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+}
+
+/* Checkbox/Radio Styling */
+.radio-option input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #000;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.radio-option input[type="checkbox"]:checked {
+  background-color: #000;
+}
+
+/* --- Personal Info Fields (Revised Inputs) --- */
+.fields-section {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.field-line {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.label-text {
+  white-space: nowrap;
+  margin-right: 5px;
+}
+
+.input-line {
+  border: none;
+  border-bottom: 1px dashed #000; /* Use dashed line for most inputs */
+  padding: 0 5px;
+  font-size: 14px;
+  outline: none;
+  flex-grow: 1;
+}
+
+.input-line.large {
+  width: 70%;
+}
+
+.input-line.medium {
+  width: 150px;
+}
+
+/* Specific revised input widths */
+.input-line.birth-date {
+  width: 150px; /* Space for a full date JJ/MM/AAAA */
+  margin-right: 20px;
+}
+
+.immatriculation-revised {
+  border: 1px solid #000; /* Solid border for the immatriculation number */
+  height: 1.5em;
+  padding: 2px 5px;
+  width: 250px;
+  flex-grow: 0;
+}
+
+.date-range-line .date-input {
+  width: 100px; /* Space for a date JJ/MM/AAAA */
+  margin: 0 5px;
+}
+
+/* --- Signature Block --- */
+.signature-block {
+  margin-top: 40px;
+  font-size: 14px;
+}
+
+.final-text {
+  text-align: justify;
+  margin-bottom: 30px;
+}
+
+.fait-le-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-bottom: 50px;
+}
+
+.fait-le-label {
+  margin-left: 30px;
+  margin-right: 5px;
+  white-space: nowrap;
+}
+
+.input-line.fait-le-field {
+  width: 150px;
+  border-bottom: 1px solid #000;
+}
+
+.signature-row {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.signature-column {
+  width: 40%;
+}
+
+.signature-space {
+  height: 50px;
+  border-bottom: 1px solid #000;
+  margin-top: 5px;
+}
+
+/* --- Footer Note --- */
+.footer-note {
+  margin-top: 30px;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+  font-size: 11px;
+  position: relative;
+}
+
+.footer-note p {
+  margin: 0 0 5px 0;
+  text-align: left;
+  width: 80%;
+}
+
+.reference {
+  position: absolute;
+  bottom: 5px;
+  right: 0;
+}

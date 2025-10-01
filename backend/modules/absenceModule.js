@@ -6,39 +6,47 @@ const absenceSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: [true, "Identifiant utilisateur requis."],
       index: true,
     },
     startDate: {
       type: Date,
-      required: true,
+      required: [true, "La date de début est requise."],
     },
     endDate: {
       type: Date,
-      required: true,
+      required: [true, "La date de fin est requise."],
       validate: {
         validator: function (end) {
-          // 'this' is the document
-          return !this.startDate || this.startDate <= end;
+          if (!this.startDate) return true;
+          return this.startDate <= end;
         },
-        message: "endDate must be greater than or equal to startDate",
+        message:
+          "La date de fin doit être postérieure ou égale à la date de début.",
       },
     },
     type: {
       type: String,
-      enum: ["maladie", "conge", "absence"],
-      required: true,
+      enum: [
+        "maladie",
+        "conge_annuel",
+        "conge_sans_solde",
+        "maternite",
+        "absence_sans_justification",
+        "deuil",
+      ],
+      required: [true, "Le type d'absence est requis."],
     },
     proofUrl: {
       type: String,
       default: null,
       validate: {
         validator: function (v) {
-          if (!v) return true; // optional
-          // simple URL sanity check
+          if (!v) return true;
           return /^(https?:\/\/)[^\s$.?#].[^\s]*$/i.test(v);
         },
-        message: "proofUrl must be a valid URL",
+        message:
+          "proofUrl doit être une URL valide (commençant par http:// ou https://).",
       },
     },
     status: {
@@ -48,11 +56,12 @@ const absenceSchema = new mongoose.Schema(
       index: true,
     },
     removed: { type: Boolean, default: false, index: true },
+    commentaire_RH: { type: String, trim: true, default: null },
   },
   { timestamps: true }
 );
 
-// helpful indexes
+// Indexes utiles
 absenceSchema.index({ status: 1, createdAt: -1 });
 absenceSchema.index({ user: 1, createdAt: -1 });
 

@@ -1,29 +1,36 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  RefreshCw,
+  Download,
+  Check,
+  X,
+  User,
+  Calendar,
+  XCircle,
+  CheckCircle,
+  FileText,
+  Briefcase,
+  Clock,
+  TrendingUp,
+  Baby,
+  AlertTriangle,
+  Heart,
+  Archive,
+} from "lucide-react";
+
 import api from "../api/api";
-
-/**
- * PendingRequests.jsx - improved, professional, informative.
- *
- * - Search + filters + refresh + pagination
- * - Summary cards (total, by type, by role)
- * - Details modal with Accept / Decline (inline justification)
- * - CSV export of current table view
- *
- * Drop-in replacement for your previous component.
- */
-
 export default function PendingRequests() {
-  const [items, setItems] = useState([]); // raw rows from backend
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [selected, setSelected] = useState(null); // selected row for details
+  const [selected, setSelected] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-
-  // UI state
   const [query, setQuery] = useState("");
-  const [filterType, setFilterType] = useState("all"); // conge, maladie, all
-  const [filterRole, setFilterRole] = useState("all"); // user, RH, all
+  const [filterType, setFilterType] = useState("all");
+  const [filterRole, setFilterRole] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -32,7 +39,6 @@ export default function PendingRequests() {
 
   useEffect(() => {
     fetchPending();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPending = async () => {
@@ -52,29 +58,59 @@ export default function PendingRequests() {
     }
   };
 
-  // derived stats
   const stats = useMemo(() => {
     const total = items.length;
-    const byType = items.reduce(
-      (acc, r) => {
-        const t = (r.absence && r.absence.type) || "unknown";
-        acc[t] = (acc[t] || 0) + 1;
-        return acc;
-      },
-      { conge: 0, maladie: 0 }
-    );
+    const byType = items.reduce((acc, r) => {
+      const type = r.absence?.type || "unknown";
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
     const byRole = items.reduce((acc, r) => {
-      const role =
-        r.role ||
-        (r.absence && r.absence.user && r.absence.user.role) ||
-        "user";
+      const role = r.role || r.absence?.user?.role || "user";
       acc[role] = (acc[role] || 0) + 1;
       return acc;
     }, {});
     return { total, byType, byRole };
   }, [items]);
 
-  // filtering and searching
+  const getIconForType = (type) => {
+    switch (type) {
+      case "maladie":
+        return <XCircle size={20} className="text-red-500" />;
+      case "conge_annuel":
+        return <Calendar size={20} className="text-green-500" />;
+      case "conge_sans_solde":
+        return <Calendar size={20} className="text-yellow-500" />;
+      case "maternite":
+        return <Baby size={20} className="text-purple-500" />;
+      case "absence_sans_justification":
+        return <AlertTriangle size={20} className="text-orange-500" />;
+      case "deuil":
+        return <Heart size={20} className="text-pink-500" />;
+      default:
+        return <FileText size={20} className="text-gray-500" />;
+    }
+  };
+
+  const getHintForType = (type) => {
+    switch (type) {
+      case "maladie":
+        return "Sick leave";
+      case "conge_annuel":
+        return "Annual leave";
+      case "conge_sans_solde":
+        return "Unpaid leave";
+      case "maternite":
+        return "Maternity leave";
+      case "absence_sans_justification":
+        return "Unjustified absence";
+      case "deuil":
+        return "Bereavement leave";
+      default:
+        return "";
+    }
+  };
+
   const filtered = useMemo(() => {
     const q = (query || "").trim().toLowerCase();
     const from = dateFrom ? new Date(dateFrom) : null;
@@ -82,19 +118,15 @@ export default function PendingRequests() {
 
     return items.filter((r) => {
       const abs = r.absence || {};
-      // filter by type
       if (filterType !== "all" && abs.type !== filterType) return false;
-      // filter by role
       const role = r.role || (abs.user && abs.user.role) || "user";
       if (filterRole !== "all" && role !== filterRole) return false;
-      // date range on submission date
       if (from || to) {
         const created = abs.createdAt ? new Date(abs.createdAt) : null;
         if (!created) return false;
         if (from && created < from) return false;
         if (to && created > to) return false;
       }
-      // text search against username/email/type
       if (q) {
         const hay = `${r.username || ""} ${r.email || ""} ${
           abs.type || ""
@@ -105,11 +137,9 @@ export default function PendingRequests() {
     });
   }, [items, query, filterType, filterRole, dateFrom, dateTo]);
 
-  // pagination slice
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  // helpers
   const openDetails = (row) => setSelected({ ...row, justifyText: "" });
   const closeDetails = () => setSelected(null);
 
@@ -185,171 +215,168 @@ export default function PendingRequests() {
 
   if (loading)
     return (
-      <div style={container}>
+      <div className="p-4 max-w-[75rem] mx-auto font-sans">
         <Header
           title="Pending Absence Requests"
           subtitle="Requests awaiting HR review"
         />
-        <div style={centered}>Loading pending requests…</div>
+        <div className="text-center py-12 text-gray-500">
+          Loading pending requests…
+        </div>
       </div>
     );
 
   if (error)
     return (
-      <div style={container}>
+      <div className="p-4 max-w-[75rem] mx-auto font-sans">
         <Header
           title="Pending Absence Requests"
           subtitle="Requests awaiting HR review"
         />
-        <div style={{ color: "crimson", padding: 12 }}>{error}</div>
+        <div className="text-red-500 p-4 rounded-lg bg-red-50">{error}</div>
       </div>
     );
 
   return (
-    <div style={container}>
+    <div className="p-4 max-w-[75rem] mx-auto font-sans">
       <Header
         title="Pending Absence Requests"
         subtitle="Review and action pending absence requests submitted by employees."
         extra={
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button onClick={fetchPending} style={ctaButton}>
-              🔄 Refresh
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchPending}
+              className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1"
+            >
+              <RefreshCw size={16} />
+              Refresh
             </button>
-            <button onClick={downloadCSV} style={secondaryButton}>
-              ⤓ Export CSV
+            <button
+              onClick={downloadCSV}
+              className="px-3 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition flex items-center gap-1"
+            >
+              <Download size={16} />
+              Export CSV
             </button>
           </div>
         }
       />
 
-      {/* summary cards */}
-      <div
-        style={{ display: "flex", gap: 12, marginTop: 12, flexWrap: "wrap" }}
-      >
-        <StatCard label="Total pending" value={stats.total} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
         <StatCard
-          label="Congé"
-          value={stats.byType.conge || 0}
-          hint="Paid leave"
+          label="Total pending"
+          value={stats.total}
+          icon={<User size={20} className="text-blue-500" />}
         />
-        <StatCard
-          label="Maladie"
-          value={stats.byType.maladie || 0}
-          hint="Sick leave"
-        />
+        {Object.entries(stats.byType).map(([type, count]) => (
+          <StatCard
+            key={type}
+            label={type}
+            value={count}
+            icon={getIconForType(type)}
+            hint={getHintForType(type)}
+          />
+        ))}
         <StatCard
           label="By role"
           value={Object.entries(stats.byRole)
             .map(([k, v]) => `${k}: ${v}`)
             .join(" • ")}
           small
+          icon={<Briefcase size={20} className="text-purple-500" />}
         />
-        <div
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          <small style={{ color: "#666" }}>
+        <div className="ml-auto">
+          <small className="text-gray-500">
             Last updated: {lastUpdated ? formatDateTime(lastUpdated) : "—"}
           </small>
         </div>
       </div>
 
-      {/* controls: search + filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginTop: 16,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="flex flex-wrap gap-4 items-center mt-4">
         <input
           placeholder="Search username, email or type..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={searchInput}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-[200px]"
         />
-
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          style={smallSelect}
+          className="px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="all">All types</option>
-          <option value="conge">Congé</option>
+          <option value="conge_annuel">Congé annuel</option>
+          <option value="conge_sans_solde">Congé sans solde</option>
           <option value="maladie">Maladie</option>
+          <option value="maternite">Maternité</option>
+          <option value="absence_sans_justification">
+            Absence sans justification
+          </option>
+          <option value="deuil">Deuil</option>
         </select>
-
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          style={smallSelect}
+          className="px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="all">All roles</option>
           <option value="user">User</option>
           <option value="RH">RH</option>
         </select>
-
-        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <small style={{ color: "#666" }}>From</small>
+        <label className="flex items-center gap-2">
+          <small className="text-gray-500">From</small>
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            style={dateInput}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
           />
         </label>
-
-        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <small style={{ color: "#666" }}>To</small>
+        <label className="flex items-center gap-2">
+          <small className="text-gray-500">To</small>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            style={dateInput}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
           />
         </label>
-
-        <div style={{ marginLeft: "auto" }}>
-          <small style={{ color: "#666" }}>{filtered.length} result(s)</small>
+        <div className="ml-auto">
+          <small className="text-gray-500">{filtered.length} result(s)</small>
         </div>
       </div>
 
-      {/* table */}
-      <div
-        style={{
-          marginTop: 14,
-          overflowX: "auto",
-          borderRadius: 10,
-          border: "1px solid #eee",
-        }}
-      >
-        <table
-          style={{ width: "100%", borderCollapse: "collapse", minWidth: 800 }}
-        >
-          <thead style={{ background: "#fafafa" }}>
+      <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full">
+          <thead className="bg-gray-50">
             <tr>
-              <th style={th}>Username</th>
-              <th style={th}>Email</th>
-              <th style={th}>Role</th>
-              <th style={th}>Type</th>
-              <th style={th}>Status</th>
-              <th style={th}>Submitted</th>
-              <th style={th}>Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Username
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Email
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Role
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Type
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Submitted
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td
-                  colSpan={7}
-                  style={{ padding: 28, textAlign: "center", color: "#666" }}
-                >
+                <td colSpan={7} className="py-8 text-center text-gray-500">
                   No pending requests match your filters.
                 </td>
               </tr>
@@ -357,26 +384,44 @@ export default function PendingRequests() {
               paginated.map((row) => {
                 const abs = row.absence || {};
                 return (
-                  <tr key={abs._id || Math.random()} style={trStyle}>
-                    <td style={td}>{row.username || "—"}</td>
-                    <td style={td}>{row.email || "—"}</td>
-                    <td style={td}>
+                  <tr
+                    key={abs._id || Math.random()}
+                    onClick={() => openDetails(row)}
+                    className="border-b border-gray-100 hover:bg-gray-50 hover:cursor-pointer"
+                  >
+                    <td className="px-4 py-3">{row.username || "—"}</td>
+                    <td className="px-4 py-3">{row.email || "—"}</td>
+                    <td className="px-4 py-3">
                       {row.role || (abs.user && abs.user.role) || "—"}
                     </td>
-                    <td style={td}>
-                      <span style={{ textTransform: "capitalize" }}>
-                        {abs.type || "—"}
-                      </span>
+                    <td className="px-4 py-3">
+                      <span className="capitalize">{abs.type || "—"}</span>
                     </td>
-                    <td style={td}>{abs.status || "pending"}</td>
-                    <td style={td}>{formatDate(abs.createdAt)}</td>
-                    <td style={td}>
-                      <div style={{ display: "flex", gap: 8 }}>
+                    <td className="px-4 py-3">{abs.status || "pending"}</td>
+                    <td className="px-4 py-3">{formatDate(abs.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
                         <button
-                          style={linkButton}
-                          onClick={() => openDetails(row)}
+                          onClick={() => acceptAbsence(abs._id)}
+                          disabled={actionLoading}
+                          className="p-2 text-green-500 hover:text-green-700 rounded-lg transition"
                         >
-                          View
+                          <Check size={18} />
+                        </button>
+                        <button
+                          onClick={() => openDetails(row)}
+                          disabled={actionLoading}
+                          className="p-2 text-red-500 hover:text-red-700 rounded-lg transition"
+                        >
+                          <X size={18} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(`/absences/user/${abs.user._id}`)
+                          }
+                          className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition"
+                        >
+                          <Archive size={18} />
                         </button>
                       </div>
                     </td>
@@ -388,141 +433,153 @@ export default function PendingRequests() {
         </table>
       </div>
 
-      {/* pagination */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 12,
-        }}
-      >
-        <div style={{ color: "#666" }}>
+      <div className="flex justify-between items-center mt-4">
+        <div className="text-gray-500">
           Showing {(page - 1) * pageSize + 1} -{" "}
           {Math.min(page * pageSize, filtered.length)} of {filtered.length}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={page === 1 ? disabledPageBtn : pageBtn}
+            className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             Prev
           </button>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              minWidth: 56,
-              justifyContent: "center",
-            }}
-          >
-            {page}
-          </div>
+          <span className="px-3 py-1">{page}</span>
           <button
             onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
             disabled={page === pageCount}
-            style={page === pageCount ? disabledPageBtn : pageBtn}
+            className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             Next
           </button>
         </div>
       </div>
 
-      {/* details modal */}
       {selected && (
-        <div style={modalBackdropStyle} onClick={closeDetails}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h3 style={{ margin: 0 }}>Absence Details</h3>
-              <button onClick={closeDetails} style={closeBtnStyle}>
-                ✕
+        <div
+          className="fixed inset-0 bg-opacity-80 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          onClick={closeDetails}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Absence Details</h3>
+              <button
+                onClick={closeDetails}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
               </button>
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <div style={detailRow}>
-                <strong>User:</strong> {selected.username} &lt;{selected.email}
-                &gt;
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <User size={18} className="text-blue-500" />
+                <div>
+                  <strong className="text-gray-700">User:</strong>{" "}
+                  {selected.username} {selected.email}
+                </div>
               </div>
-              <div style={detailRow}>
-                <strong>Role:</strong> {selected.role}
+              <div className="flex items-center gap-2">
+                <Briefcase size={18} className="text-purple-500" />
+                <div>
+                  <strong className="text-gray-700">Role:</strong>{" "}
+                  {selected.role}
+                </div>
               </div>
 
-              <hr style={{ margin: "12px 0" }} />
+              <hr className="border-gray-200" />
 
-              <div style={detailRow}>
-                <strong>Type:</strong> {selected.absence?.type}
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-green-500" />
+                <div>
+                  <strong className="text-gray-700">Type:</strong>{" "}
+                  {selected.absence?.type}
+                </div>
               </div>
-              <div style={detailRow}>
-                <strong>Status:</strong> {selected.absence?.status}
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-yellow-500" />
+                <div>
+                  <strong className="text-gray-700">Status:</strong>{" "}
+                  {selected.absence?.status}
+                </div>
               </div>
-              <div style={detailRow}>
-                <strong>Start:</strong>{" "}
-                {formatDate(selected.absence?.startDate)}
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-green-500" />
+                <div>
+                  <strong className="text-gray-700">Start:</strong>{" "}
+                  {formatDate(selected.absence?.startDate)}
+                </div>
               </div>
-              <div style={detailRow}>
-                <strong>End:</strong> {formatDate(selected.absence?.endDate)}
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-green-500" />
+                <div>
+                  <strong className="text-gray-700">End:</strong>{" "}
+                  {formatDate(selected.absence?.endDate)}
+                </div>
               </div>
-              <div style={detailRow}>
-                <strong>Submitted:</strong>{" "}
-                {formatDate(selected.absence?.createdAt)}
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-yellow-500" />
+                <div>
+                  <strong className="text-gray-700">Submitted:</strong>{" "}
+                  {formatDate(selected.absence?.createdAt)}
+                </div>
               </div>
 
               {selected.absence?.reason && (
-                <div style={detailRow}>
-                  <strong>Reason:</strong>{" "}
-                  <div style={{ marginTop: 6 }}>{selected.absence.reason}</div>
+                <div className="flex items-start gap-2">
+                  <FileText size={18} className="text-blue-500" />
+                  <div>
+                    <strong className="text-gray-700">Reason:</strong>
+                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      {selected.absence.reason}
+                    </div>
+                  </div>
                 </div>
               )}
 
               {selected.absence?.proofUrl && (
-                <div style={detailRow}>
-                  <strong>Proof:</strong>{" "}
-                  {/\.(jpg|jpeg|png|gif)$/i.test(selected.absence.proofUrl) ? (
-                    <a
-                      href={selected.absence.proofUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img
-                        src={selected.absence.proofUrl}
-                        alt="Proof"
-                        style={{
-                          display: "block",
-                          maxWidth: "220px",
-                          maxHeight: "220px",
-                          marginTop: 8,
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          border: "1px solid #f0f0f0",
-                        }}
-                      />
-                    </a>
-                  ) : (
-                    <a
-                      href={selected.absence.proofUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View Proof
-                    </a>
-                  )}
+                <div className="flex items-start gap-2">
+                  <FileText size={18} className="text-blue-500" />
+                  <div>
+                    <strong className="text-gray-700">Proof:</strong>
+                    {/\.(jpg|jpeg|png|gif)$/i.test(
+                      selected.absence.proofUrl
+                    ) ? (
+                      <a
+                        href={selected.absence.proofUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 block"
+                      >
+                        <img
+                          src={selected.absence.proofUrl}
+                          alt="Proof"
+                          className="max-w-[220px] max-h-[220px] rounded-lg border border-gray-200"
+                        />
+                      </a>
+                    ) : (
+                      <a
+                        href={selected.absence.proofUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 block text-blue-500 hover:underline"
+                      >
+                        View Proof
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <label
-                style={{ display: "block", marginBottom: 6, fontWeight: 600 }}
-              >
-                Rejection justification (optional but recommended)
+            <div className="mt-4">
+              <label className="block mb-2 font-medium">
+                Rejection justification (required for decline)
               </label>
               <textarea
                 value={selected.justifyText}
@@ -531,23 +588,18 @@ export default function PendingRequests() {
                 }
                 placeholder="Explain why this request should be rejected (visible to user)"
                 rows={3}
-                style={{
-                  width: "100%",
-                  padding: 8,
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  resize: "vertical",
-                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => acceptAbsence(selected.absence._id)}
                 disabled={actionLoading}
-                style={acceptBtnStyle}
+                className="px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2"
               >
-                {actionLoading ? "Processing..." : "Accept"}
+                <Check size={16} />
+                Accept
               </button>
 
               <button
@@ -555,12 +607,16 @@ export default function PendingRequests() {
                   declineAbsence(selected.absence._id, selected.justifyText)
                 }
                 disabled={actionLoading}
-                style={declineBtnStyle}
+                className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
               >
-                {actionLoading ? "Processing..." : "Decline"}
+                <X size={16} />
+                Decline
               </button>
 
-              <button onClick={closeDetails} style={secondaryBtnStyle}>
+              <button
+                onClick={closeDetails}
+                className="px-5 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+              >
                 Close
               </button>
             </div>
@@ -571,183 +627,37 @@ export default function PendingRequests() {
   );
 }
 
-/* ---------- small presentational pieces & styles ---------- */
-
 function Header({ title, subtitle, extra }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 12,
-        justifyContent: "space-between",
-      }}
-    >
+    <div className="flex items-start gap-4 justify-between">
       <div>
-        <h2 style={{ margin: 0 }}>{title}</h2>
-        {subtitle && (
-          <p style={{ margin: "6px 0 0", color: "#666" }}>{subtitle}</p>
-        )}
+        <h2 className="m-0 text-2xl font-bold">{title}</h2>
+        {subtitle && <p className="mt-1 text-gray-500">{subtitle}</p>}
       </div>
       {extra}
     </div>
   );
 }
 
-function StatCard({ label, value, hint = "", small = false }) {
+function StatCard({ label, value, hint = "", small = false, icon }) {
   return (
     <div
-      style={{
-        background: "linear-gradient(180deg,#fff,#fbfbfb)",
-        border: "1px solid #eee",
-        padding: small ? "8px 12px" : "12px 16px",
-        borderRadius: 10,
-        minWidth: small ? 120 : 140,
-        boxShadow: "0 6px 18px rgba(10,20,40,0.03)",
-      }}
+      className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${
+        small ? "min-w-28" : "min-w-36"
+      }`}
     >
-      <div style={{ color: "#666", fontSize: 12 }}>{label}</div>
-      <div style={{ fontSize: small ? 14 : 20, fontWeight: 700, marginTop: 6 }}>
-        {value}
+      <div className="flex items-center gap-2 mb-1">
+        {icon}
+        <div>
+          <div className="text-gray-500 text-sm">{label}</div>
+          <div className="font-bold text-lg mt-1">{value}</div>
+          {hint && <div className="text-gray-500 text-sm mt-1">{hint}</div>}
+        </div>
       </div>
-      {hint && (
-        <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>{hint}</div>
-      )}
     </div>
   );
 }
 
-/* styles */
-const container = {
-  padding: 16,
-  maxWidth: 1200,
-  margin: "0 auto",
-  fontFamily: "Inter, system-ui, sans-serif",
-};
-const centered = { padding: 40, textAlign: "center", color: "#666" };
-const th = {
-  textAlign: "left",
-  padding: "12px 14px",
-  fontSize: 13,
-  color: "#333",
-  borderBottom: "1px solid #eee",
-};
-const td = {
-  padding: "12px 14px",
-  fontSize: 14,
-  color: "#111",
-  verticalAlign: "middle",
-};
-const trStyle = { borderTop: "1px solid #f6f6f6", cursor: "default" };
-const searchInput = {
-  padding: "10px 12px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-  minWidth: 260,
-};
-const smallSelect = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-};
-const dateInput = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-};
-const ctaButton = {
-  background: "#0b6a3a",
-  color: "#fff",
-  border: "none",
-  padding: "8px 12px",
-  borderRadius: 8,
-  cursor: "pointer",
-};
-const secondaryButton = {
-  background: "#e9eef4",
-  color: "#0b2330",
-  border: "none",
-  padding: "8px 10px",
-  borderRadius: 8,
-  cursor: "pointer",
-};
-const linkButton = {
-  background: "transparent",
-  border: "none",
-  color: "#0b6a3a",
-  cursor: "pointer",
-  fontWeight: 600,
-};
-const pageBtn = {
-  padding: "6px 10px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-  background: "#fff",
-  cursor: "pointer",
-};
-const disabledPageBtn = { ...pageBtn, opacity: 0.5, cursor: "not-allowed" };
-
-const modalBackdropStyle = {
-  position: "fixed",
-  left: 0,
-  top: 0,
-  right: 0,
-  bottom: 0,
-  background: "rgba(0,0,0,0.35)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 9999,
-};
-
-const modalStyle = {
-  width: 760,
-  maxWidth: "96%",
-  background: "#fff",
-  padding: 18,
-  borderRadius: 10,
-  boxShadow: "0 16px 48px rgba(2,6,23,0.14)",
-};
-
-const detailRow = { marginBottom: 8, fontSize: 14, color: "#222" };
-
-const acceptBtnStyle = {
-  background: "#0b6a3a",
-  color: "#fff",
-  padding: "10px 14px",
-  borderRadius: 8,
-  border: "none",
-  cursor: "pointer",
-  fontWeight: 700,
-};
-
-const declineBtnStyle = {
-  background: "#b00020",
-  color: "#fff",
-  padding: "10px 14px",
-  borderRadius: 8,
-  border: "none",
-  cursor: "pointer",
-  fontWeight: 700,
-};
-
-const secondaryBtnStyle = {
-  background: "#f3f6fb",
-  color: "#111",
-  padding: "10px 14px",
-  borderRadius: 8,
-  border: "none",
-  cursor: "pointer",
-};
-
-const closeBtnStyle = {
-  background: "transparent",
-  border: "none",
-  fontSize: 18,
-  cursor: "pointer",
-};
-
-/* helpers */
 const formatDate = (v) => {
   if (!v) return "—";
   try {

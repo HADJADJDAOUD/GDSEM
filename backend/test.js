@@ -1,204 +1,200 @@
-// scripts/seed-dev-users.js
-// Usage:
-//   MONGO_URI="mongodb://localhost:27017/yourdb" CLEAR_DB=true node scripts/seed-dev-users.js
-//
-// Adjust the require paths below if your models live elsewhere.
-// e.g. const User = require("../modules/usermodule"); or require("../models/User");
-
-dotenv = require("dotenv");
-dotenv.config();
-
+// test.js  (or scripts/seed_db.js)
+require("dotenv").config();
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
+const { faker } = require("@faker-js/faker");
 
-const MONGO = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/dev_db";
-const CLEAR_DB =
-  process.env.CLEAR_DB === "true" || process.env.CLEAR_DB === "1";
+// adjust these requires if your project structure differs:
+const User = require("./modules/userModule");
+const Absence = require("./modules/absenceModule");
+const RejectedAbsence = require("./modules/RejectedAbsence");
 
-let User;
-let Absence;
+// CLI args: --numUsers=50 --maxAbsences=5 --wipe
+const args = process.argv.slice(2).reduce((acc, cur) => {
+  const [k, v] = cur.replace(/^--/, "").split("=");
+  acc[k] = v === undefined ? true : v;
+  return acc;
+}, {});
 
-try {
-  // adjust based on your project layout:
-  User = require("./modules/userModule"); // if your User model is at modules/usermodule.js
-} catch (e) {
-  try {
-    User = require("./models/User"); // if it's models/User.js
-  } catch (e2) {
-    console.error("Cannot require User model. Adjust path in script.");
-    process.exit(1);
-  }
+const NUM_USERS = parseInt(args.numUsers || 50, 10);
+const MAX_ABS_PER_USER = parseInt(args.maxAbsences || 5, 10);
+const WIPE = !!args.wipe;
+
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGO_URL;
+if (!MONGO_URI) {
+  console.error("Please set MONGO_URI in .env before running the script.");
+  process.exit(1);
 }
 
-try {
-  Absence = require("./modules/absenceModule");
-} catch (e) {
-  try {
-    Absence = require("../modules/Absence");
-  } catch (e2) {
-    console.error("Cannot require Absence model. Adjust path in script.");
-    process.exit(1);
-  }
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
 }
 
-async function hash(pw) {
-  return bcrypt.hash(pw, 10);
+async function randomDateBetween(start, end) {
+  const startTs = start.getTime();
+  const endTs = end.getTime();
+  return new Date(startTs + Math.floor(Math.random() * (endTs - startTs)));
 }
 
-async function main() {
-  await mongoose.connect(MONGO, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  console.log("Connected to", MONGO);
+async function seed() {
+  await mongoose.connect(MONGO_URI, {});
 
-  if (CLEAR_DB) {
-    console.log("Clearing database...");
-    await mongoose.connection.dropDatabase();
+  if (WIPE) {
+    console.log(
+      "WIPE ON — deleting User, Absence, RejectedAbsence collections."
+    );
+    await Promise.all([
+      User.deleteMany({}),
+      Absence.deleteMany({}),
+      RejectedAbsence.deleteMany({}),
+    ]);
   }
 
-  // Create 4 users
-  const usersData = [
-    {
-      username: "alice",
-      email: "alice@example.com",
-      password: "Password123!",
-      role: "user",
-    },
-    {
-      username: "bob",
-      email: "bob@example.com",
-      password: "Password123!",
-      role: "user",
-    },
-    {
-      username: "carol",
-      email: "carol@example.com",
-      password: "Password123!",
-      role: "RH",
-    },
-    {
-      username: "dave",
-      email: "dave@example.com",
-      password: "Password123!",
-      role: "DRH",
-    },
-  ];
+  const hashedPassword = await bcrypt.hash("Password123!", 10);
 
-  // Hash passwords and create users
-  const createdUsers = [];
-  for (const u of usersData) {
-    const hashed = await hash(u.password);
+  let createdUsers = 0;
+  let createdAbsences = 0;
+  let createdRejected = 0;
+
+  for (let i = 0; i < NUM_USERS; i++) {
+    // Generate email in a way compatible with Faker versions
+    const email =
+      faker.internet && typeof faker.internet.email === "function"
+        ? faker.internet.email().toLowerCase()
+        : faker.internetEmail
+        ? faker.internetEmail().toLowerCase()
+        : `user${Date.now()}${i}@example.com`;
+
+    // Build a username from the email prefix and a short suffix to keep uniqueness
+    const emailPrefix = (email.split("@")[0] || `user${i}`).replace(
+      /[^a-z0-9_.-]/gi,
+      "_"
+    );
+    const username = `${emailPrefix}_${String(Date.now()).slice(-5)}_${i}`;
+
+    // service (you said you added it)
+    const service =
+      faker.commerce && faker.commerce.department
+        ? faker.commerce.department()
+        : `Service-${Math.floor(Math.random() * 10)}`;
+
+    // small fraction of RH / DRH
+    const r = Math.random();
+    const role = r < 0.03 ? "DRH" : r < 0.08 ? "RH" : "user";
+
+    // createdAt random in past two years
+    const createdAt = await randomDateBetween(
+      new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 2),
+      new Date()
+    );
+
+    // create user doc
     const userDoc = await User.create({
-      username: u.username,
-      email: u.email,
-      password: hashed,
-      role: u.role,
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      service, // uses your added field
+      createdAt,
     });
-    createdUsers.push(userDoc);
-    console.log(`Created user ${userDoc.username} (${userDoc._id})`);
-  }
 
-  // Create some absences and link to users
-  const now = new Date();
+    createdUsers++;
 
-  const absencesData = [
-    // Alice: one pending absence
-    {
-      user: createdUsers[0]._id,
-      startDate: new Date(now.getTime() + 24 * 60 * 60 * 1000), // tomorrow
-      endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // +3 days
-      type: "conge",
-      proofUrl: null,
-      status: "pending",
-    },
-    // Bob: one accepted and one pending
-    {
-      user: createdUsers[1]._id,
-      startDate: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-      endDate: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000), // -8 days
-      type: "maladie",
-      proofUrl: "https://example.com/proof-bob-1.png",
-      status: "accepted",
-    },
-    {
-      user: createdUsers[1]._id,
-      startDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // +7 days
-      endDate: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // +8 days
-      type: "absence",
-      proofUrl: null,
-      status: "pending",
-    },
-    // Carol (RH): no absences (manager)
-    // Dave (DRH): one pending
-    {
-      user: createdUsers[3]._id,
-      startDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // +2 days
-      endDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // same day
-      type: "conge",
-      proofUrl: null,
-      status: "pending",
-    },
-  ];
+    // create absences for this user
+    const numAbs = Math.floor(Math.random() * MAX_ABS_PER_USER) + 1;
+    for (let a = 0; a < numAbs; a++) {
+      // weighted types
+      const r2 = Math.random();
+      let type;
+      if (r2 < 0.3) type = "maladie";
+      else if (r2 < 0.55) type = "conge_annuel";
+      else if (r2 < 0.7) type = "conge_sans_solde";
+      else if (r2 < 0.78) type = "maternite";
+      else if (r2 < 0.92) type = "absence_sans_justification";
+      else type = "deuil";
 
-  const createdAbsences = [];
-  for (const a of absencesData) {
-    try {
-      const doc = await Absence.create(a);
-      createdAbsences.push(doc);
-      console.log(
-        `Created absence ${doc._id} for user ${String(a.user).slice(0, 6)}...`
+      // start random in past 2 years
+      const start = await randomDateBetween(
+        new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 2),
+        new Date()
       );
-      // Optionally update user's endDate to match last created absence endDate (mirrors old logic)
-      await User.findByIdAndUpdate(
-        a.user,
-        { endDate: a.endDate },
-        { new: true }
-      );
-    } catch (err) {
-      console.error("Error creating absence:", err.message);
-    }
-  }
 
-  // Demonstrate populating virtual 'absences' on users
-  // Make sure your User schema has the virtual defined (absences virtual)
-  const usersWithAbsences = await User.find({})
-    .select("username email role endDate")
-    .lean()
-    .exec();
+      // decide duration based on type (rules you wanted)
+      let durationDays;
+      let proofUrl = null;
+      if (type === "conge_annuel") {
+        durationDays = Math.random() < 0.5 ? 15 : 30;
+      } else if (type === "conge_sans_solde") {
+        durationDays = Math.floor(Math.random() * 30) + 1;
+      } else if (type === "maternite") {
+        durationDays = 182; // ~6 months
+      } else if (type === "deuil") {
+        durationDays = Math.floor(Math.random() * 5) + 1;
+      } else if (type === "maladie") {
+        durationDays = Math.floor(Math.random() * 14) + 1;
+        if (Math.random() < 0.6)
+          proofUrl =
+            faker.internet && faker.internet.url ? faker.internet.url() : null;
+      } else {
+        durationDays = Math.floor(Math.random() * 5) + 1;
+      }
 
-  // Populate using User.populate to ensure virtuals appear
-  // Note: if you used toJSON/toObject virtuals options, you could use .populate() on Mongoose docs
-  // but since we used .lean(), do a separate query to populate properly:
-  const userDocs = await User.find({}).populate({
-    path: "absences",
-    match: { removed: false },
-    options: { sort: { createdAt: -1 } },
-  });
+      const end = addDays(start, durationDays - 1);
+      const status = Math.random() < 0.6 ? "accepted" : "pending";
 
-  console.log("\n=== Users and populated absences ===");
-  for (const u of userDocs) {
-    console.log(`- ${u.username} (${u.role}) - absences: ${u.absences.length}`);
-    u.absences.forEach((ab) => {
-      console.log(
-        `   • [${ab.status}] ${ab.type} ${
-          ab.startDate.toISOString().split("T")[0]
-        } -> ${ab.endDate.toISOString().split("T")[0]} (id:${ab._id})`
-      );
-    });
-  }
+      const absence = await Absence.create({
+        user: userDoc._id,
+        startDate: start,
+        endDate: end,
+        type,
+        proofUrl,
+        status,
+      });
 
-  console.log(
-    "\nDone. Created users:",
-    createdUsers.length,
-    "Created absences:",
-    createdAbsences.length
-  );
+      createdAbsences++;
+
+      if (status === "accepted") {
+        const currentEnd = userDoc.endDate ? new Date(userDoc.endDate) : null;
+        if (!currentEnd || end > currentEnd) {
+          userDoc.endDate = end;
+          await userDoc.save();
+        }
+      }
+
+      // small chance to create a rejectedAbsence record
+      if (Math.random() < 0.08) {
+        await RejectedAbsence.create({
+          user: userDoc._id,
+          startDate: start,
+          endDate: end,
+          type,
+          proofUrl: proofUrl || null,
+          justification:
+            faker.lorem && faker.lorem.sentence
+              ? faker.lorem.sentence()
+              : "justification",
+          motif_rejet_RH:
+            faker.lorem && faker.lorem.words
+              ? faker.lorem.words(5)
+              : "motif rejet",
+        });
+        createdRejected++;
+      }
+    } // end absences loop
+  } // end users loop
+
+  console.log("Seeding finished:");
+  console.log("  Users created:", createdUsers);
+  console.log("  Absences created:", createdAbsences);
+  console.log("  RejectedAbsences created:", createdRejected);
+
   await mongoose.disconnect();
   process.exit(0);
 }
 
-main().catch((err) => {
-  console.error("Fatal error:", err);
-  process.exit(1);
+seed().catch((err) => {
+  console.error("Seeding error:", err);
+  mongoose.disconnect().finally(() => process.exit(1));
 });

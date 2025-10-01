@@ -7,9 +7,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 
-const User = require("../modules/usermodule"); // <- adjust path if needed
-const Absence = require("../modules/absenceModule"); // <- adjust path if needed
-const RejectedAbsence = require("../modules/RejectedAbsence"); // <- adjust path if needed
+const User = require("../modules/userModule");
+const Absence = require("../modules/absenceModule");
+const RejectedAbsence = require("../modules/RejectedAbsence");
 const JWT_SECRET = process.env.JWT_SECRET || "change-this-secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
@@ -45,7 +45,7 @@ const sendToken = (res, user, statusCode = 200) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body || {};
-    
+
     if (!email || !password) {
       return res
         .status(400)
@@ -88,7 +88,6 @@ exports.login = async (req, res) => {
 exports.createAbsence = async (req, res) => {
   try {
     const { startDate, endDate, type, proofUrl } = req.body || {};
-    // basic validation
     if (!startDate || !endDate || !type) {
       return res.status(400).json({
         status: "fail",
@@ -98,19 +97,37 @@ exports.createAbsence = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
-      console.error("User not found in createAbsence:", req.user._id);
       return res
         .status(404)
         .json({ status: "fail", message: "User not found" });
     }
 
-    // Convert dates to a comparable format
-    const newStartDate = new Date(startDate);
-    const newEndDate = new Date(endDate);
-    const userEndDate = user.endDate ? new Date(user.endDate) : null;
+    // Convert dates to midnight for day counting
+    const s = new Date(startDate);
+    const e = new Date(endDate);
+    s.setHours(0, 0, 0, 0);
+    e.setHours(0, 0, 0, 0);
 
-    // The core logic: ensure new start doesn't come before user's endDate
-    if (userEndDate && newStartDate < userEndDate) {
+    if (e < s) {
+      return res.status(400).json({
+        status: "fail",
+        message: "endDate must be the same or after startDate",
+      });
+    }
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const requestedDays = Math.round((e - s) / msPerDay) + 1; // inclusive count
+
+    if (requestedDays <= 0) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Invalid date range",
+      });
+    }
+
+    // Check user's current end date
+    const userEndDate = user.endDate ? new Date(user.endDate) : null;
+    if (userEndDate && s < userEndDate) {
       return res.status(400).json({
         status: "fail",
         message: `Please start from this date: ${
@@ -119,19 +136,38 @@ exports.createAbsence = async (req, res) => {
       });
     }
 
-    // create absence doc referencing user
-    const absenceDoc = await Absence.create({
-      user: user._id,
-      startDate: newStartDate,
-      endDate: newEndDate,
+    // 👇 NEW: Check leave balance BEFORE creation (only for paid/unpaid types)
+    if (type === "conge_annuel" || type === "conge_sans_solde") {
+      const balanceIndex = type === "conge_annuel" ? 0 : 1;
+      const currentBalance = user.conge_balance[balanceIndex];
+
+      if (currentBalance === 0) {
+        return res.status(400).json({
+          status: "fail",
+          message: `Aucun jour restant pour ${type}.`,
+        });
+      }
+
+      if (currentBalance < requestedDays) {
+        return res.status(400).json({
+          status: "fail",
+          message: `Vous ne pouvez demander que ${currentBalance} jour(s) pour ${type}.`,
+        });
+      }
+    }
+
+    // Create absence document (no balance deduction here - only validation)
+    const absenceDoc = new Absence({
+      user: req.user._id,
+      startDate,
+      endDate,
       type,
-      proofUrl: proofUrl || null,
+      proofUrl,
+      status: "pending",
     });
 
-    // we update user.endDate when he accpeted from RH or DRH in the acceptAbsence controller
-    // so here we do NOT update user.endDate when creating a mere request
-    
-    await user.save();
+    await absenceDoc.save();
+    await user.save(); // Save user (though no changes yet)
 
     res.status(201).json({ status: "success", data: absenceDoc });
   } catch (err) {
@@ -145,7 +181,6 @@ exports.createAbsence = async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
 /**
  * GET /api/absences/me
  * Returns current user's absences (filtered removed=false)
@@ -173,9 +208,10 @@ exports.getMyLatestAbsence = async (req, res) => {
       .exec();
 
     if (!absence) {
-      return res.status(404).json({ status: "fail", message: "No absences found" });
+      return res
+        .status(404)
+        .json({ status: "fail", message: "No absences found" });
     }
-    console.log("Found latest absence:", absence);
 
     res.json({ status: "success", data: absence });
   } catch (err) {
@@ -183,8 +219,6 @@ exports.getMyLatestAbsence = async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
-
 
 /**
  * GET /api/users/:id/absences
@@ -199,7 +233,7 @@ exports.getUserAbsences = async (req, res) => {
         .status(400)
         .json({ status: "fail", message: "Invalid user id" });
 
-    const user = await User.findById(id).select("username email");
+    const user = await User.findById(id).select("username email role service ");
     if (!user)
       return res
         .status(404)
@@ -213,7 +247,12 @@ exports.getUserAbsences = async (req, res) => {
       status: "success",
       results: abs.length,
       data: {
-        user: { username: user.username, email: user.email },
+        user: {
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          service: user.service,
+        },
         absences: abs,
       },
     });
@@ -243,20 +282,45 @@ exports.acceptAbsence = async (req, res) => {
         .status(404)
         .json({ status: "fail", message: "Absence not found" });
 
-    // permission: allow RH/DRH only to accpet (not owner)
+    // Permission check: Only RH/DRH can accept
     const isAdmin = ["RH", "DRH"].includes(req.user.role);
     if (!isAdmin)
       return res.status(403).json({ status: "fail", message: "Forbidden" });
 
-// here we update user.endDate when he accpeted from RH or DRH
+    // Calculate requested days (inclusive)
+    const s = new Date(absence.startDate);
+    const e = new Date(absence.endDate);
+    s.setHours(0, 0, 0, 0);
+    e.setHours(0, 0, 0, 0);
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const requestedDays = Math.round((e - s) / msPerDay) + 1;
 
+    // Get user and update balance
     const user = await User.findById(absence.user);
-    if (user) {
-      const absenceEndDate = new Date(absence.endDate);
-      user.endDate = absenceEndDate;
-      await user.save();
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "User not found" });
     }
 
+    // 👇 DEDUCT BALANCE ONLY FOR PAID/UNPAID TYPES
+    if (
+      absence.type === "conge_annuel" ||
+      absence.type === "conge_sans_solde"
+    ) {
+      const balanceIndex = absence.type === "conge_annuel" ? 0 : 1;
+      user.conge_balance[balanceIndex] -= requestedDays;
+      // Ensure balance doesn't go negative (shouldn't happen due to createAbsence check)
+      if (user.conge_balance[balanceIndex] < 0) {
+        user.conge_balance[balanceIndex] = 0;
+      }
+    }
+
+    // Update user.endDate (as per your existing logic)
+    user.endDate = absence.endDate;
+    await user.save();
+
+    // Accept the absence
     absence.status = "accepted";
     await absence.save();
 
@@ -266,7 +330,6 @@ exports.acceptAbsence = async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
 /**
  * DELETE /api/absences/:absenceId
  * Soft-remove an absence (sets removed=true)
@@ -277,7 +340,6 @@ const path = require("path");
 
 exports.deleteAbsence = async (req, res) => {
   try {
-    console.log("deleteAbsence called with params:", req.params.absenceId);
     const absenceId = req.params.absenceId || req.params.aid;
 
     if (!mongoose.Types.ObjectId.isValid(absenceId)) {
@@ -332,8 +394,6 @@ exports.deleteAbsence = async (req, res) => {
   }
 };
 
-
-
 /**
  * GET /api/absences/pending
  * Lists all pending absences across users (for RH dashboard)
@@ -344,7 +404,7 @@ exports.deleteAbsence = async (req, res) => {
 exports.getPendingAbsences = async (req, res) => {
   try {
     const pending = await Absence.find({ status: "pending" })
-      .populate("user", "username email")
+      .populate("user", "username email role service ")
       .sort({ createdAt: -1 })
       .limit(1000);
 
@@ -403,6 +463,7 @@ exports.declineAbsence = async (req, res) => {
       type: absence.type,
       proofUrl: absence.proofUrl,
       justification,
+      status: "declined",
     });
 
     // Remove from main Absence collection
@@ -430,6 +491,29 @@ exports.getMyRejectedAbsences = async (req, res) => {
     });
   } catch (err) {
     console.error("getMyRejectedAbsences error:", err);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+exports.getUserRejectedAbsences = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user id" });
+    }
+
+    const rejectedAbsences = await RejectedAbsence.find({ user: userId }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: rejectedAbsences.length,
+      data: rejectedAbsences,
+    });
+  } catch (err) {
+    console.error("getUserRejectedAbsences error:", err);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };

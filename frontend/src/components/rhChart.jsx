@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
@@ -14,13 +14,10 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import api from "../api/api";
-
-const chartConfig = {
-  total: { label: "All Absences" },
-  detailed: { label: "By Type" },
-};
 
 export default function CompanyAcceptedAbsencesChart() {
   const [activeChart, setActiveChart] = React.useState("total");
@@ -28,7 +25,7 @@ export default function CompanyAcceptedAbsencesChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState("3months");
-
+  console.log("Rendering CompanyAcceptedAbsencesChart with period:", period);
   useEffect(() => {
     const fetchAccepted = async () => {
       setLoading(true);
@@ -36,7 +33,9 @@ export default function CompanyAcceptedAbsencesChart() {
       try {
         const res = await api.get("/absences/accepted");
         const abs = res?.data?.data || [];
+
         setAllAbsences(Array.isArray(abs) ? abs : []);
+        console.log("Fetched accepted absences:", abs);
       } catch (err) {
         console.error("Failed to fetch accepted absences:", err);
         setError("Failed to load data.");
@@ -47,7 +46,7 @@ export default function CompanyAcceptedAbsencesChart() {
     fetchAccepted();
   }, []);
 
-  const chartData = React.useMemo(() => {
+  const chartDataResult = React.useMemo(() => {
     const today = new Date();
     const startDate = new Date();
 
@@ -68,12 +67,20 @@ export default function CompanyAcceptedAbsencesChart() {
         startDate.setMonth(today.getMonth() - 3);
     }
 
+    // Collect all absence types from data
+    const allTypes = new Set();
+    allAbsences.forEach((a) => {
+      if (a.type) allTypes.add(a.type);
+    });
+
+    // Create date map for each day in the period
     const dateMap = {};
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split("T")[0];
-      dateMap[dateStr] = { date: dateStr, total: 0, conge: 0, maladie: 0 };
+      dateMap[dateStr] = { date: dateStr, total: 0 };
     }
 
+    // Process each absence by counting DAILY DAYS (not just start date)
     for (const a of allAbsences) {
       if (!a.startDate || !a.endDate) continue;
       const absS = new Date(a.startDate);
@@ -92,43 +99,105 @@ export default function CompanyAcceptedAbsencesChart() {
         const slot = dateMap[dateStr];
         if (!slot) continue;
         slot.total += 1;
-        if (a.type === "conge") slot.conge += 1;
-        else if (a.type === "maladie") slot.maladie += 1;
+        if (slot[a.type] === undefined) slot[a.type] = 0;
+        slot[a.type] += 1;
       }
     }
 
-    return Object.values(dateMap).sort(
-      (x, y) => new Date(x.date) - new Date(y.date)
+    // Ensure all types exist for each date
+    const chartDataArray = Object.values(dateMap).map((slot) => {
+      allTypes.forEach((type) => {
+        if (slot[type] === undefined) slot[type] = 0;
+      });
+      return slot;
+    });
+
+    // Calculate statistics for chart (days)
+    const typeTotals = {};
+    allTypes.forEach((type) => {
+      typeTotals[type] = chartDataArray.reduce(
+        (sum, row) => sum + row[type],
+        0
+      );
+    });
+    const overallTotal = chartDataArray.reduce(
+      (sum, row) => sum + row.total,
+      0
     );
-  }, [allAbsences, period]);
+    const days = chartDataArray.length || 1;
+    const avgPerDay = Math.round((overallTotal / days) * 100) / 100;
 
-  const totals = React.useMemo(() => {
-    const total = chartData.reduce((s, r) => s + (r.total || 0), 0);
-    const conge = chartData.reduce((s, r) => s + (r.conge || 0), 0);
-    const maladie = chartData.reduce((s, r) => s + (r.maladie || 0), 0);
-    return { total, conge, maladie };
-  }, [chartData]);
-
-  const stats = React.useMemo(() => {
-    const days = chartData.length || 1;
-    const avgPerDay = Math.round((totals.total / days) * 100) / 100;
     let peak = { date: null, value: 0 };
-    for (const row of chartData) {
-      if ((row.total || 0) > peak.value)
-        peak = { date: row.date, value: row.total || 0 };
-    }
-    const mostCommonType =
-      totals.conge > totals.maladie
-        ? { type: "Congé", value: totals.conge }
-        : { type: "Maladie", value: totals.maladie };
+    chartDataArray.forEach((slot) => {
+      if (slot.total > peak.value)
+        peak = { date: slot.date, value: slot.total };
+    });
+
+    let mostCommonType = { type: null, value: 0 };
+    allTypes.forEach((type) => {
+      if (typeTotals[type] > mostCommonType.value) {
+        mostCommonType = { type, value: typeTotals[type] };
+      }
+    });
+
+    // Calculate request counts for table (each absence = 1 request)
+    const requestTypeTotals = {};
+    allAbsences.forEach((absence) => {
+      if (absence.type) {
+        requestTypeTotals[absence.type] =
+          (requestTypeTotals[absence.type] || 0) + 1;
+      }
+    });
+    const requestTotal = allAbsences.length;
+
+    // Define labels and colors for types
+    const labelMap = {
+      conge_annuel: "Congé annuel",
+      maladie: "Maladie",
+      conge_sans_solde: "Congé sans solde",
+      maternite: "Maternité",
+      absence_sans_justification: "Absence sans justification",
+      deuil: "Deuil",
+    };
+    const colorMap = {
+      conge_annuel: "#1d4ed8",
+      maladie: "#059669",
+      conge_sans_solde: "#f59e0b",
+      maternite: "#8b5cf6",
+      absence_sans_justification: "#e63946",
+      deuil: "#a855f7",
+    };
+
+    const chartConfig = {};
+    allTypes.forEach((type) => {
+      const label = labelMap[type] || type;
+      const color = colorMap[type] || "#9ca3af";
+      chartConfig[type] = { label, color };
+    });
 
     return {
-      days,
-      avgPerDay,
-      peak,
-      mostCommonType,
+      chartData: chartDataArray.sort(
+        (x, y) => new Date(x.date) - new Date(y.date)
+      ),
+      overallTotal,
+      stats: { days, avgPerDay, peak, mostCommonType },
+      chartConfig,
+      allTypes: Array.from(allTypes),
+      typeTotals,
+      requestTotal,
+      requestTypeTotals,
     };
-  }, [chartData, totals]);
+  }, [allAbsences, period]);
+
+  const {
+    chartData,
+    overallTotal,
+    stats,
+    chartConfig,
+    allTypes,
+    requestTotal,
+    requestTypeTotals,
+  } = chartDataResult;
 
   const tickFormatter = (value) => {
     const d = new Date(value);
@@ -179,11 +248,9 @@ export default function CompanyAcceptedAbsencesChart() {
     );
   }
 
-  const chartVars = {
-    "--color-total": "#e63946",
-    "--color-conge": "#1d4ed8",
-    "--color-maladie": "#059669",
-  };
+  const sortedTypes = [...allTypes].sort(
+    (a, b) => requestTypeTotals[b] - requestTypeTotals[a]
+  );
 
   return (
     <Card className="py-4 sm:py-0">
@@ -191,17 +258,17 @@ export default function CompanyAcceptedAbsencesChart() {
         <div className="flex flex-col px-6 pb-2 sm:pb-0">
           <CardTitle>Accepted Absences (Company)</CardTitle>
           <CardDescription>
-            Daily number of users absent during the selected period.
+            Daily number of absence days during the selected period.
           </CardDescription>
         </div>
 
         <div className="flex gap-3 px-4 pb-2 sm:pb-0">
           <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[110px]">
-            <span className="text-xs text-muted-foreground">Total</span>
-            <strong className="text-lg">{totals.total.toLocaleString()}</strong>
+            <span className="text-xs text-muted-foreground">Total Days</span>
+            <strong className="text-lg">{overallTotal.toLocaleString()}</strong>
           </div>
           <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[140px]">
-            <span className="text-xs text-muted-foreground">Average / day</span>
+            <span className="text-xs text-muted-foreground">Avg. per day</span>
             <strong className="text-lg">
               {stats.avgPerDay.toLocaleString()}
             </strong>
@@ -212,7 +279,7 @@ export default function CompanyAcceptedAbsencesChart() {
           <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[170px]">
             <span className="text-xs text-muted-foreground">Peak day</span>
             <strong className="text-lg">
-              {stats.peak.value} on{" "}
+              {stats.peak.value} day{stats.peak.value > 1 ? "s" : ""} on{" "}
               {stats.peak.date
                 ? new Date(stats.peak.date).toLocaleDateString()
                 : "—"}
@@ -222,9 +289,14 @@ export default function CompanyAcceptedAbsencesChart() {
             <span className="text-xs text-muted-foreground">
               Most common type
             </span>
-            <strong className="text-lg">{stats.mostCommonType.type}</strong>
+            <strong className="text-lg">
+              {stats.mostCommonType.type
+                ? chartConfig[stats.mostCommonType.type]?.label ||
+                  stats.mostCommonType.type
+                : "—"}
+            </strong>
             <span className="text-xs text-muted-foreground">
-              {stats.mostCommonType.value.toLocaleString()}
+              {stats.mostCommonType.value.toLocaleString()} days
             </span>
           </div>
         </div>
@@ -233,7 +305,6 @@ export default function CompanyAcceptedAbsencesChart() {
       <CardContent className="px-2 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-2">
           <div className="flex gap-2 items-center">
-            {/* 🗓️ Period Buttons - UPDATED */}
             {["week", "month", "3months", "year"].map((p) => (
               <button
                 key={p}
@@ -254,65 +325,37 @@ export default function CompanyAcceptedAbsencesChart() {
               </button>
             ))}
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 text-sm">
-              <LegendItem color={chartVars["--color-total"]} label="Total" />
-              <LegendItem color={chartVars["--color-conge"]} label="Congé" />
-              <LegendItem
-                color={chartVars["--color-maladie"]}
-                label="Maladie"
-              />
-            </div>
-
-            {/* 📊 Chart Toggle Buttons - UPDATED */}
-            <div className="flex gap-1 rounded-full overflow-hidden border bg-gray-200 shadow-md">
-              <button
-                onClick={() => setActiveChart("total")}
-                className={`
-                  px-4 py-2 text-base font-semibold transition-all duration-200
-                  ${
-                    activeChart === "total"
-                      ? "bg-[#0b6a3a] text-white shadow-inner"
-                      : "text-gray-600 hover:bg-gray-300"
-                  }
-                `}
-              >
-                Total
-              </button>
-              <button
-                onClick={() => setActiveChart("detailed")}
-                className={`
-                  px-4 py-2 text-base font-semibold transition-all duration-200
-                  ${
-                    activeChart === "detailed"
-                      ? "bg-[#0b6a3a] text-white shadow-inner"
-                      : "text-gray-600 hover:bg-gray-300"
-                  }
-                `}
-              >
-                Detailed
-              </button>
-            </div>
-          </div>
         </div>
 
-        <div style={chartVars}>
+        <div>
           <ChartContainer
-            config={{
-              total: {
-                label: "Total Absences",
-                color: chartVars["--color-total"],
-              },
-              conge: { label: "Congé", color: chartVars["--color-conge"] },
-              maladie: {
-                label: "Maladie",
-                color: chartVars["--color-maladie"],
-              },
-            }}
+            config={chartConfig}
             className="aspect-auto h-[300px] w-full"
           >
-            <LineChart data={chartData} margin={{ left: 12, right: 12 }}>
+            <AreaChart data={chartData} margin={{ left: 12, right: 12 }}>
+              <defs>
+                {allTypes.map((type) => (
+                  <linearGradient
+                    key={type}
+                    id={`fill${type}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={chartConfig[type].color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={chartConfig[type].color}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                ))}
+              </defs>
               <CartesianGrid vertical={false} strokeOpacity={0.06} />
               <XAxis
                 dataKey="date"
@@ -327,7 +370,6 @@ export default function CompanyAcceptedAbsencesChart() {
                 content={
                   <ChartTooltipContent
                     className="w-[200px]"
-                    nameKey={activeChart === "total" ? "total" : "value"}
                     labelFormatter={(value) =>
                       new Date(value).toLocaleDateString(undefined, {
                         month: "short",
@@ -335,57 +377,87 @@ export default function CompanyAcceptedAbsencesChart() {
                         year: "numeric",
                       })
                     }
+                    indicator="dot"
                   />
                 }
               />
-              {activeChart === "total" ? (
-                <Line
-                  dataKey="total"
-                  type="monotone"
-                  stroke="var(--color-total)"
-                  strokeWidth={2}
-                  dot={false}
+              {allTypes.map((type) => (
+                <Area
+                  key={type}
+                  dataKey={type}
+                  type="natural"
+                  fill={`url(#fill${type})`}
+                  stroke={chartConfig[type].color}
+                  stackId="a"
                 />
-              ) : (
-                <>
-                  <Line
-                    dataKey="conge"
-                    type="monotone"
-                    stroke="var(--color-conge)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    dataKey="maladie"
-                    type="monotone"
-                    stroke="var(--color-maladie)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </>
-              )}
-            </LineChart>
+              ))}
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
           </ChartContainer>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">
+            Absence Requests Breakdown
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Type
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Requests
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Percentage
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedTypes.map((type) => {
+                  const total = requestTypeTotals[type] || 0;
+                  const percentage =
+                    requestTotal > 0 ? (total / requestTotal) * 100 : 0;
+                  return (
+                    <tr key={type}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {chartConfig[type]?.label || type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {total.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="ml-2 text-sm">
+                            {percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function LegendItem({ color = "#ccc", label = "" }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        aria-hidden
-        style={{
-          background: color,
-          width: 12,
-          height: 12,
-          borderRadius: 3,
-          display: "inline-block",
-        }}
-      />
-      <span className="text-sm">{label}</span>
-    </div>
   );
 }
