@@ -26,14 +26,16 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //////
 app.use(morgan("dev"));
 const PORT = process.env.PORT || 5000;
-
+console.log("process env", process.env.MONGO_URI);
 
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
+  .connect(
+    process.env.MONGO_URI , {
+        // remove:
+   useNewUrlParser: true,
+   useUnifiedTopology: true ,
+    serverSelectionTimeoutMS: 30000,
+  }).then(() => {
     console.log("MongoDB connected");
   })
   .catch((err) => {

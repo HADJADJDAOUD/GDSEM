@@ -5,6 +5,7 @@ import DemandePrestations from "./absences/DemandePrestations";
 import FormHeuresSup from "./FormHeuresSup";
 import DeclarationDeTransport from "./absences/DeclarationDeTransport";
 import Declaration from "./absences/Declaration";
+import PrintPage from "./PrintableForm";
 {
   /* <DemandePrestations />
       <DeclarationDeTransport />
@@ -22,7 +23,7 @@ export default function FormSwitcher() {
       case "DemandePrestations":
         return <DemandePrestations />;
       case "FormHeuresSup":
-        return <FormHeuresSup />;
+        return <PrintPage />;
       case "Declaration":
         return <Declaration />;
       case "DeclarationDeTransport":

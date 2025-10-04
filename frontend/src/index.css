@@ -192,9 +192,12 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* Use the direct variable for border-color and outline-color */
+    @apply border-[var(--border)] outline-[color:var(--ring)]/50;
+    /* Note: outline-ring/50 is still possible if 'ring' is mapped in tailwind.config.js */
   }
   body {
-    @apply bg-background text-foreground;
+    /* Use the direct variable for background and text colors */
+    @apply bg-[var(--background)] text-[var(--foreground)];
   }
 }

@@ -1,11 +1,8 @@
 // FormHeuresSup.jsx
-import React, { useState, useRef } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import React, { useState, forwardRef } from "react";
+import ReactToPrint from "react-to-print";
 
-export default function FormHeuresSup() {
-  const printRef = useRef();
-
+const FormHeuresSup = forwardRef((props, ref) => {
   const initialState = {
     nom: "",
     prenom: "",
@@ -37,53 +34,15 @@ export default function FormHeuresSup() {
     }));
   };
 
-  const exportPDF = async () => {
-    const input = printRef.current;
-    const canvas = await html2canvas(input, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const imgProps = pdf.getImageProperties(imgData);
-    const imgWidth = pageWidth;
-    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-
-    let position = 0;
-    if (imgHeight < pageHeight) {
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    } else {
-      // Split into multiple pages if needed
-      let heightLeft = imgHeight;
-      let y = 0;
-      while (heightLeft > 0) {
-        pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        y -= pageHeight;
-        if (heightLeft > 0) pdf.addPage();
-      }
-    }
-
-    pdf.save("Formulaire_Heures_Sup.pdf");
-  };
-
   return (
     <>
-      <div className="mb-4 print:hidden">
-        <button
-          type="button"
-          onClick={exportPDF}
-          className="px-3 py-1 border rounded hover:bg-gray-100"
-        >
-          Export PDF (A4)
-        </button>
-      </div>
+      {/* Print button (not shown in print) */}
 
       {/* Form container */}
       <div
-        ref={printRef}
+        ref={ref}
         className="max-w-2xl mx-auto bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
-        style={{ width: "210mm", minHeight: "297mm" }} // force A4 page size
+        style={{ width: "210mm", minHeight: "297mm" }} // A4 size
       >
         {/* Header */}
         <header className="text-center mb-4">
@@ -280,4 +239,5 @@ export default function FormHeuresSup() {
       </div>
     </>
   );
-}
+});
+export default FormHeuresSup;
