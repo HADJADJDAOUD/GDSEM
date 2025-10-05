@@ -1,20 +1,23 @@
 // src/components/Declaration.jsx
-import React from "react";
-import "./Declaration.css"; // move styles here
+import React, { forwardRef, useState } from "react";
+import "./Declaration.css"; // keep your styles
+import SignatureField from "../SignatureField";
 
-export default function Declaration() {
+const Declaration = forwardRef((props, ref) => {
+  const [signatureAgentUrl, setSignatureAgentUrl] = useState(null);
+
+  const onSaveAgent = (dataUrl) => {
+    setSignatureAgentUrl(dataUrl);
+  };
+
   return (
-    <div className="form-container">
+    <div className="form-container" ref={ref}>
       <header className="official-header">
         <div className="logo-placeholder">CNAS</div>
         <div className="header-text">
           <p className="arabic-text">وزارة العمل والتشغيل والضمان الاجتماعي</p>
-          <p className="french-text">
-            Caisse Nationale des Assurances Sociales
-          </p>
-          <p className="sub-text">
-            الصندوق الوطني للتأمينات الإجتماعية للعمال الأجراء
-          </p>
+          <p className="french-text">Caisse Nationale des Assurances Sociales</p>
+          <p className="sub-text">الصندوق الوطني للتأمينات الإجتماعية للعمال الأجراء</p>
           <p className="sub-text bold-underline">- Assurances Sociales -</p>
         </div>
       </header>
@@ -28,9 +31,7 @@ export default function Declaration() {
         <p className="consecutif-title">Arrêt de travail consécutif :</p>
 
         <div className="question-row">
-          <span className="question-text">
-            - à un accident du travail ? (1)
-          </span>
+          <span className="question-text">- à un accident du travail ? (1)</span>
           <label className="radio-option">
             <input type="checkbox" name="accident_travail" value="oui" /> OUI
           </label>
@@ -40,16 +41,12 @@ export default function Declaration() {
         </div>
 
         <div className="question-row">
-          <span className="question-text">
-            - à un accident de la circulation ? (1)
-          </span>
+          <span className="question-text">- à un accident de la circulation ? (1)</span>
           <label className="radio-option">
-            <input type="checkbox" name="accident_circulation" value="oui" />{" "}
-            OUI
+            <input type="checkbox" name="accident_circulation" value="oui" /> OUI
           </label>
           <label className="radio-option">
-            <input type="checkbox" name="accident_circulation" value="non" />{" "}
-            NON
+            <input type="checkbox" name="accident_circulation" value="non" /> NON
           </label>
         </div>
       </div>
@@ -120,10 +117,42 @@ export default function Declaration() {
         </div>
 
         <div className="signature-row">
+          {/* Agent column: interactive signature (hidden in print) + saved image (printed) */}
           <div className="signature-column">
             <p>Signature de l&apos;Agent</p>
-            <div className="signature-space"></div>
+
+            {/* interactive signature UI — HIDDEN when printing via .no-print */}
+            <div className="no-print" style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature Agent:</div>
+              <SignatureField onSave={onSaveAgent} initialDataUrl={signatureAgentUrl} />
+            </div>
+
+            {/* saved image or placeholder — visible in print */}
+            <div style={{ marginTop: 8 }}>
+              {signatureAgentUrl ? (
+                <img
+                  src={signatureAgentUrl}
+                  alt="agent-signature"
+                  style={{ width: "50mm", border: "0px solid #eee", display: "block" }}
+                />
+              ) : (
+                <div
+                  style={{
+                    height: 28,
+                    border: "1px dashed #ddd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#999",
+                  }}
+                >
+                  No signature saved
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Assuré(e) column: unchanged, no signatureField added */}
           <div className="signature-column right-align">
             <p>Signature de l&apos;Assuré(e) Social(e)</p>
             <div className="signature-space"></div>
@@ -140,4 +169,6 @@ export default function Declaration() {
       </footer>
     </div>
   );
-}
+});
+
+export default Declaration;

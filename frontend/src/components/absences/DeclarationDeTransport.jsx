@@ -1,13 +1,21 @@
-import React, { useRef } from "react";
+// src/components/DeclarationDeTransport.jsx
+"use client";
 
-const DeclarationDeTransport = () => {
-  const pdfRef = useRef();
+import React, { forwardRef, useState } from "react";
+import SignatureField from "../SignatureField";
+
+const DeclarationDeTransport = forwardRef((props, ref) => {
+  const [signatureInterestedUrl, setSignatureInterestedUrl] = useState(null);
+
+  const handleSaveInterested = (dataUrl) => {
+    setSignatureInterestedUrl(dataUrl);
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center p-10">
       {/* PDF content */}
       <div
-        ref={pdfRef}
+        ref={ref}
         className="bg-white border border-gray-300 shadow max-w-3xl w-full p-12"
       >
         {/* Header */}
@@ -87,11 +95,43 @@ const DeclarationDeTransport = () => {
               <span className="align-items-center text-center mt-5">X</span>
             </div>
           </div>
+
+          {/* Interested signature column: interactive (no-print) + saved image (printed) */}
           <div className="w-2/5">
             <p>Signature de</p>
             <p>l&apos;intéressé (e)</p>
-            <div className="mt-3 h-16 flex justify-center align-center   ">
-              <span className="align-items-center text-center mt-5">X</span>
+
+            {/* interactive signature UI — hidden when printing */}
+            <div className="no-print" style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature intéressé(e):</div>
+              <SignatureField
+                onSave={handleSaveInterested}
+                initialDataUrl={signatureInterestedUrl}
+              />
+            </div>
+
+            {/* saved image (or placeholder) — outside .no-print so it appears in print */}
+            <div style={{ marginTop: 8 }}>
+              {signatureInterestedUrl ? (
+                <img
+                  src={signatureInterestedUrl}
+                  alt="interested-signature"
+                  style={{ width: "50mm", border: "1px solid #eee", display: "block", margin: "0 auto" }}
+                />
+              ) : (
+                <div
+                  style={{
+                    height: 28,
+                    border: "1px dashed #ddd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#999",
+                  }}
+                >
+                  No signature saved
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -117,6 +157,6 @@ const DeclarationDeTransport = () => {
       </div>
     </div>
   );
-};
+});
 
 export default DeclarationDeTransport;

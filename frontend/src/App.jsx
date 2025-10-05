@@ -54,7 +54,7 @@ export default function App() {
           }
         />
         {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/form" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

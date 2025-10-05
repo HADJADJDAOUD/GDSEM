@@ -1,13 +1,13 @@
-  import React, { useRef } from "react";
-  import { useReactToPrint } from "react-to-print";
-  import FormHeuresSup from "./FormHeuresSup";
+import React, { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+import DeclarationDeTransport from "./absences/DeclarationDeTransport";
 
-  export default function PrintPage() {
+  export default function PrintTransport() {
     const formRef = useRef();
 
     const handlePrint = useReactToPrint({
       contentRef: formRef, // ✅ v3 API, not content()
-      documentTitle: "Formulaire_Heures_Sup",
+      documentTitle: "Declaration_De_Transport",
       pageStyle: `
         @page { size: A4; margin: 12mm; }
         body { -webkit-print-color-adjust: exact; }
@@ -26,7 +26,7 @@
         </button>
 
         {/* The form to be printed */}
-        <FormHeuresSup ref={formRef} />
+        <DeclarationDeTransport ref={formRef} />
       </div>
     );
   }

@@ -1,8 +1,8 @@
   import React, { useRef } from "react";
   import { useReactToPrint } from "react-to-print";
-  import FormHeuresSup from "./FormHeuresSup";
-
-  export default function PrintPage() {
+  
+import Declaration from "./absences/Declaration";
+  export default function PrintDeclarationPage() {
     const formRef = useRef();
 
     const handlePrint = useReactToPrint({
@@ -26,7 +26,7 @@
         </button>
 
         {/* The form to be printed */}
-        <FormHeuresSup ref={formRef} />
+        <Declaration ref={formRef} />
       </div>
     );
   }

@@ -1,10 +1,20 @@
 // src/components/DemandePrestations.jsx
-import React from "react";
-import "./DemandePrestations.css"; // move your CSS here
+"use client";
 
-const DemandePrestations = () => {
+import React, { forwardRef, useState } from "react";
+import SignatureField from "../SignatureField";
+import "./DemandePrestations.css";
+
+const DemandePrestations = forwardRef((props, ref) => {
+  const [signatureUrl, setSignatureUrl] = useState(null);
+
+  const handleSaveSignature = (dataUrl) => {
+    setSignatureUrl(dataUrl);
+  };
+
   return (
-    <div className="form-container" dir="rtl" lang="fr">
+    <div className="form-container" dir="rtl" lang="fr" ref={ref}>
+      {/* Header */}
       <header className="header">
         <div className="logo-placeholder"></div>
         <div className="header-text">
@@ -19,42 +29,39 @@ const DemandePrestations = () => {
 
       <h2 className="form-title">DEMANDE DE PRESTATIONS</h2>
 
+      {/* Checkboxes Section */}
       <div className="checkbox-section">
         <div className="checkbox-row">
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="nature" />{" "}
-            Prestations en Nature
+            <input type="checkbox" name="prestation" value="nature" /> Prestations
+            en Nature
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="indemnites" />{" "}
-            Indemnités journalières
+            <input type="checkbox" name="prestation" value="indemnites" /> Indemnités
+            journalières
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="optiques" />{" "}
-            Prestations Optiques
+            <input type="checkbox" name="prestation" value="optiques" /> Prestations
+            Optiques
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="naissance" />{" "}
-            Naissance
+            <input type="checkbox" name="prestation" value="naissance" /> Naissance
           </label>
         </div>
 
         <div className="checkbox-row">
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="circoncision" />{" "}
-            Circoncision
+            <input type="checkbox" name="prestation" value="circoncision" /> Circoncision
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="hospitalisation" />{" "}
-            Frais d’hospitalisation
+            <input type="checkbox" name="prestation" value="hospitalisation" /> Frais
+            d’hospitalisation
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="chirurgie" />{" "}
-            Chirurgie
+            <input type="checkbox" name="prestation" value="chirurgie" /> Chirurgie
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="laser" />{" "}
-            Laser-ophtalmologie
+            <input type="checkbox" name="prestation" value="laser" /> Laser-ophtalmologie
           </label>
           <label className="checkbox-item">
             <input type="checkbox" name="prestation" value="scanner" /> Scanner
@@ -66,16 +73,14 @@ const DemandePrestations = () => {
             <input type="checkbox" name="prestation" value="irm" /> IRM
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="angiographie" />{" "}
-            Angiographie
+            <input type="checkbox" name="prestation" value="angiographie" /> Angiographie
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="eco-doppler" />{" "}
-            Eco-doppler
+            <input type="checkbox" name="prestation" value="eco-doppler" /> Eco-doppler
           </label>
           <label className="checkbox-item">
-            <input type="checkbox" name="prestation" value="divers" /> Divers
-            radiologies et analyses médicales
+            <input type="checkbox" name="prestation" value="divers" /> Divers radiologies
+            et analyses médicales
           </label>
           <label className="checkbox-item">
             <input type="checkbox" name="prestation" value="deces" /> Décès
@@ -86,10 +91,9 @@ const DemandePrestations = () => {
         </div>
       </div>
 
-      <p className="note">
-        (1) Mettre une croix sur la case de la prestation demandée.
-      </p>
+      <p className="note">(1) Mettre une croix sur la case de la prestation demandée.</p>
 
+      {/* Info Fields */}
       <div className="field-section">
         <p className="label">
           Numéro d’adhésion à la Mutuelle Générale des PTT :
@@ -119,12 +123,12 @@ const DemandePrestations = () => {
         </p>
       </div>
 
+      {/* Beneficiary Section */}
       <div className="field-section">
         <p className="label">**Bénéficiaire :**</p>
         <div className="checkbox-row beneficiary-options">
           <label className="checkbox-item">
-            <input type="checkbox" name="beneficiaire" value="adherent" />{" "}
-            Adhérent
+            <input type="checkbox" name="beneficiaire" value="adherent" /> Adhérent
           </label>
           <label className="checkbox-item">
             <input type="checkbox" name="beneficiaire" value="epouse" /> Epouse
@@ -152,21 +156,59 @@ const DemandePrestations = () => {
         </p>
       </div>
 
+      {/* Declaration + Signature */}
       <div className="declaration-section">
         <p>Pièces justificatives :</p>
         <p>
           Je déclare sur l’honneur que les renseignements fournis et motifs
           invoqués ci-dessus sont sincères et véritables.
-          <span className="signature-line">
-            Signature <input type="text" className="input-line signature" />
-          </span>
         </p>
+
+        {/* Signature area */}
+        <div style={{ marginTop: 0 }}>
+          <div className="no-print" style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
+            <SignatureField
+              onSave={handleSaveSignature}
+              initialDataUrl={signatureUrl}
+            />
+          </div>
+
+          {/* Printed image */}
+          {signatureUrl ? (
+            <img
+              src={signatureUrl}
+              alt="signature"
+              style={{
+                width: "50mm",
+                border: "0px solid #eee",
+                display: "block",
+                marginTop: 0,
+              }}
+              className="print-only"
+            />
+          ) : (
+            <div
+              style={{
+                height: 28,
+                border: "1px dashed #ddd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#999",
+              }}
+            >
+              No signature saved
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="reserved-frame">
         <p>Cadre réservé au centre payeur :</p>
       </div>
 
+      {/* Footer */}
       <footer className="footer">
         <div className="footer-logo-placeholder">MG P&T</div>
         <div className="contact-info">
@@ -178,6 +220,6 @@ const DemandePrestations = () => {
       </footer>
     </div>
   );
-};
+});
 
 export default DemandePrestations;

@@ -6,6 +6,9 @@ import FormHeuresSup from "./FormHeuresSup";
 import DeclarationDeTransport from "./absences/DeclarationDeTransport";
 import Declaration from "./absences/Declaration";
 import PrintPage from "./PrintableForm";
+import PrintDeclarationPage from "./PrintDeclarationPage";
+import PrintTransport from "./PrintTransport";
+import PrintDemandePrestations from "./PrintDemandePrestations";
 {
   /* <DemandePrestations />
       <DeclarationDeTransport />
@@ -21,13 +24,13 @@ export default function FormSwitcher() {
   const renderForm = () => {
     switch (currentForm) {
       case "DemandePrestations":
-        return <DemandePrestations />;
+        return <PrintDemandePrestations />;
       case "FormHeuresSup":
         return <PrintPage />;
       case "Declaration":
-        return <Declaration />;
+        return <PrintDeclarationPage />;
       case "DeclarationDeTransport":
-        return <DeclarationDeTransport />;
+        return <PrintTransport />;
       default:
         return (
           <div className="text-center text-gray-600 mt-10">
