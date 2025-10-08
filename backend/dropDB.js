@@ -3,7 +3,7 @@ dotenv= require("dotenv");
 dotenv.config();
 
 // Replace this with your actual MongoDB connection string
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/your_database_name";
+const mongoURI = 'mongodb://127.0.0.1:27017/gdsem' || "mongodb://localhost:27017/your_database_name";
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 

@@ -33,6 +33,7 @@ export default function NavbarWithMenu({ view, setView }) {
           
           { key: "request", label: "Demande d'absence" },
           { key: "rejected", label: "Absences refusées" },
+          { key: "myRequests", label: "Mes demandes" },
         ];
 
   return (

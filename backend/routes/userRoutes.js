@@ -14,6 +14,10 @@ const {
   getMyRejectedAbsences,
   getUserRejectedAbsences,
 } = require("../controllers/userController.js");
+const {createFormHeuresSup  , getMyFormHeuresSup } = require( "../controllers/formHeuresSupController.js");
+const { createDeclaration, getMyDeclarations } = require("../controllers/declarationController.js");
+const { createTransportDeclaration, getMyTransportDeclarations } = require("../controllers/transportDeclarationController.js");
+const { createDemandePrestation, getMyDemandesPrestations } = require("../controllers/demandePrestationController.js");
 const { protect, restrictTo, verifyToken } = require("../utils/middleware.js");
 const uploadRouter = require("./upload.js");
 const router = express.Router();
@@ -68,4 +72,16 @@ router.get("/userRejectedAbsences/:userId", protect, getUserRejectedAbsences);
 // Admin: get a specific user's absences
 router.get("/:id/absences", protect, restrictTo("RH", "DRH"), getUserAbsences);
 
-module.exports = router;
+
+
+///  forms routes
+router.post('/formHeuresSup', protect, createFormHeuresSup);
+router.get('/formHeuresSup/me', protect, getMyFormHeuresSup);
+router.post("/declarations", protect, createDeclaration);
+router.get("/declarations/me", protect, getMyDeclarations);
+router.post("/transport", protect, createTransportDeclaration);
+router.get("/transport/me", protect, getMyTransportDeclarations);
+router.post("/demandesPrestations", protect, createDemandePrestation);
+router.get("/demandesPrestations/me", protect, getMyDemandesPrestations);
+
+module.exports = router;  

@@ -1,17 +1,60 @@
 // src/components/Declaration.jsx
-import React, { forwardRef, useState } from "react";
-import "./Declaration.css"; // keep your styles
+import React, { forwardRef, useState, useImperativeHandle } from "react";
+import "./Declaration.css";
 import SignatureField from "../SignatureField";
-
-const Declaration = forwardRef((props, ref) => {
+import { useEffect } from "react";
+const Declaration = forwardRef(({ existingData = {} }, ref) => {
   const [signatureAgentUrl, setSignatureAgentUrl] = useState(null);
+
+  // Initialize form state
+  const [formData, setFormData] = useState({
+    accidentTravail: existingData.accidentTravail || "", // "oui" or "non"
+    accidentCirculation: existingData.accidentCirculation || "", // "oui" or "non"
+    nomPrenom: existingData.nomPrenom || "",
+    dateNaissance: existingData.dateNaissance || "",
+    lieuNaissance: existingData.lieuNaissance || "",
+    numeroImmatriculation: existingData.numeroImmatriculation || "",
+    employeur: existingData.employeur || "",
+    dateDebutArret: existingData.dateDebutArret || "",
+    dateFinArret: existingData.dateFinArret || "",
+    lieuResidence: existingData.lieuResidence || "",
+    faitA: existingData.faitA || "",
+    faitLe: existingData.faitLe || "",
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCheckboxChange = (field, value) => {
+    // Only one checkbox per group can be selected (simulate radio)
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const onSaveAgent = (dataUrl) => {
     setSignatureAgentUrl(dataUrl);
   };
 
+  // ✅ Expose method for parent
+  useImperativeHandle(ref, () => ({
+    getFormDataForBackend: () => ({
+      ...formData,
+      signatureAgent: signatureAgentUrl,
+    }),
+  }), [formData, signatureAgentUrl]);
+useEffect(() => {
+  if (existingData && Object.keys(existingData).length > 0) {
+    console.log("this is existingData in Declaration:", existingData.signatureAgent);
+    setFormData({
+      ...formData,
+      ...existingData,
+    });
+    if (existingData.signatureAgent) setSignatureAgentUrl(existingData.signatureAgent);
+  }
+}, [existingData]);
   return (
-    <div className="form-container" ref={ref}>
+    // Root must be a plain div (no <form>)
+    <div className="form-container">
       <header className="official-header">
         <div className="logo-placeholder">CNAS</div>
         <div className="header-text">
@@ -24,7 +67,7 @@ const Declaration = forwardRef((props, ref) => {
 
       <h1 className="declaration-title">DÉCLARATION</h1>
       <h2 className="form-subtitle">
-        RÉSIDENCE DE L&apos;ASSURÉ(E) SOCIAL(E) PENDANT SON ARRÊT DE TRAVAIL
+        RÉSIDENCE DE L'ASSURÉ(E) SOCIAL(E) PENDANT SON ARRÊT DE TRAVAIL
       </h2>
 
       <div className="consecutif-section">
@@ -33,20 +76,40 @@ const Declaration = forwardRef((props, ref) => {
         <div className="question-row">
           <span className="question-text">- à un accident du travail ? (1)</span>
           <label className="radio-option">
-            <input type="checkbox" name="accident_travail" value="oui" /> OUI
+            <input
+              type="checkbox"
+              checked={formData.accidentTravail === "oui"}
+              onChange={() => handleCheckboxChange("accidentTravail", "oui")}
+            />{" "}
+            OUI
           </label>
           <label className="radio-option">
-            <input type="checkbox" name="accident_travail" value="non" /> NON
+            <input
+              type="checkbox"
+              checked={formData.accidentTravail === "non"}
+              onChange={() => handleCheckboxChange("accidentTravail", "non")}
+            />{" "}
+            NON
           </label>
         </div>
 
         <div className="question-row">
           <span className="question-text">- à un accident de la circulation ? (1)</span>
           <label className="radio-option">
-            <input type="checkbox" name="accident_circulation" value="oui" /> OUI
+            <input
+              type="checkbox"
+              checked={formData.accidentCirculation === "oui"}
+              onChange={() => handleCheckboxChange("accidentCirculation", "oui")}
+            />{" "}
+            OUI
           </label>
           <label className="radio-option">
-            <input type="checkbox" name="accident_circulation" value="non" /> NON
+            <input
+              type="checkbox"
+              checked={formData.accidentCirculation === "non"}
+              onChange={() => handleCheckboxChange("accidentCirculation", "non")}
+            />{" "}
+            NON
           </label>
         </div>
       </div>
@@ -54,14 +117,29 @@ const Declaration = forwardRef((props, ref) => {
       <div className="fields-section">
         <p className="field-line">
           <span className="label-text">Je soussigné(e) M. / Mme :</span>
-          <input type="text" className="input-line large" />
+          <input
+            type="text"
+            className="input-line large"
+            value={formData.nomPrenom}
+            onChange={(e) => handleInputChange("nomPrenom", e.target.value)}
+          />
         </p>
 
         <p className="field-line split-line">
           <span className="label-text">Né(e) le :</span>
-          <input type="text" className="input-line birth-date" />
+          <input
+            type="text"
+            className="input-line birth-date"
+            value={formData.dateNaissance}
+            onChange={(e) => handleInputChange("dateNaissance", e.target.value)}
+          />
           <span className="label-text">à :</span>
-          <input type="text" className="input-line medium" />
+          <input
+            type="text"
+            className="input-line medium"
+            value={formData.lieuNaissance}
+            onChange={(e) => handleInputChange("lieuNaissance", e.target.value)}
+          />
         </p>
 
         <p className="field-line full-line">
@@ -72,12 +150,19 @@ const Declaration = forwardRef((props, ref) => {
             type="text"
             className="input-line immatriculation-revised"
             placeholder="12-digit number"
+            value={formData.numeroImmatriculation}
+            onChange={(e) => handleInputChange("numeroImmatriculation", e.target.value)}
           />
         </p>
 
         <p className="field-line">
           <span className="label-text">Et employé(e) à :</span>
-          <input type="text" className="input-line large" />
+          <input
+            type="text"
+            className="input-line large"
+            value={formData.employeur}
+            onChange={(e) => handleInputChange("employeur", e.target.value)}
+          />
         </p>
 
         <p className="field-line date-range-line">
@@ -88,46 +173,59 @@ const Declaration = forwardRef((props, ref) => {
             type="text"
             className="input-line date-input"
             placeholder="JJ/MM/AAAA"
+            value={formData.dateDebutArret}
+            onChange={(e) => handleInputChange("dateDebutArret", e.target.value)}
           />
           <span className="label-text">au:</span>
           <input
             type="text"
             className="input-line date-input"
             placeholder="JJ/MM/AAAA"
+            value={formData.dateFinArret}
+            onChange={(e) => handleInputChange("dateFinArret", e.target.value)}
           />
         </p>
 
         <p className="field-line">
           <span className="label-text">Mon lieu de résidence est :</span>
-          <input type="text" className="input-line large" />
+          <input
+            type="text"
+            className="input-line large"
+            value={formData.lieuResidence}
+            onChange={(e) => handleInputChange("lieuResidence", e.target.value)}
+          />
         </p>
       </div>
 
       <div className="signature-block">
         <p className="final-text">
-          Et m&apos;engage à informer les services de la caisse de tout
-          changement de résidence pouvant survenir pendant cette période.
+          Et m'engage à informer les services de la caisse de tout changement de résidence pouvant survenir pendant cette période.
         </p>
 
         <div className="fait-le-row">
           <span className="fait-le-label">Fait à</span>
-          <input type="text" className="input-line fait-le-field" />
+          <input
+            type="text"
+            className="input-line fait-le-field"
+            value={formData.faitA}
+            onChange={(e) => handleInputChange("faitA", e.target.value)}
+          />
           <span className="fait-le-label">le</span>
-          <input type="text" className="input-line fait-le-field" />
+          <input
+            type="text"
+            className="input-line fait-le-field"
+            value={formData.faitLe}
+            onChange={(e) => handleInputChange("faitLe", e.target.value)}
+          />
         </div>
 
         <div className="signature-row">
-          {/* Agent column: interactive signature (hidden in print) + saved image (printed) */}
           <div className="signature-column">
-            <p>Signature de l&apos;Agent</p>
-
-            {/* interactive signature UI — HIDDEN when printing via .no-print */}
+            <p>Signature de l'Agent</p>
             <div className="no-print" style={{ marginTop: 8 }}>
               <div style={{ fontSize: 12, marginBottom: 6 }}>Signature Agent:</div>
               <SignatureField onSave={onSaveAgent} initialDataUrl={signatureAgentUrl} />
             </div>
-
-            {/* saved image or placeholder — visible in print */}
             <div style={{ marginTop: 8 }}>
               {signatureAgentUrl ? (
                 <img
@@ -152,9 +250,8 @@ const Declaration = forwardRef((props, ref) => {
             </div>
           </div>
 
-          {/* Assuré(e) column: unchanged, no signatureField added */}
           <div className="signature-column right-align">
-            <p>Signature de l&apos;Assuré(e) Social(e)</p>
+            <p>Signature de l'Assuré(e) Social(e)</p>
             <div className="signature-space"></div>
           </div>
         </div>
@@ -162,8 +259,7 @@ const Declaration = forwardRef((props, ref) => {
 
       <footer className="footer-note">
         <p>
-          (1) Si OUI, l’agent des prestations doit remettre à l’assuré un
-          formulaire à remplir concernant l’accident (AS.10).
+          (1) Si OUI, l’agent des prestations doit remettre à l’assuré un formulaire à remplir concernant l’accident (AS.10).
         </p>
         <span className="reference">IMP. CNAS/11-2023 - C.ADM.05</span>
       </footer>

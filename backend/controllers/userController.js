@@ -45,7 +45,7 @@ const sendToken = (res, user, statusCode = 200) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body || {};
-
+console.log("Login attempt for email:", email); 
     if (!email || !password) {
       return res
         .status(400)
@@ -53,7 +53,12 @@ exports.login = async (req, res) => {
     }
 
     // need password field explicitly because schema has select:false
+    console.log("Searching for user with email:", email);
+    // bring all the users to a list
+    
+    
     const user = await User.findOne({ email }).select("+password");
+    console.log("User found:", user ? user.email : "No user found");
     if (!user)
       return res
         .status(401)

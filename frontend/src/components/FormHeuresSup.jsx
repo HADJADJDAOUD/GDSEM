@@ -1,30 +1,46 @@
-// FormHeuresSup.jsx
-import React, { useState, forwardRef } from "react";
+import React, {
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useEffect,
+} from "react";
 import SignatureField from "./SignatureField";
 
-const FormHeuresSup = forwardRef((props, ref) => {
+const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
+  const formDivRef = useRef(); // DOM ref for printing ✅
+
   const initialState = {
-    nom: "",
-    prenom: "",
-    service: "",
-    interventionType: { distance: false, presentiel: false },
-    lieuIntervention: "",
-    datesIntervention: "",
-    horaires: "",
-    totalHeuresSupplementaires: "",
-    objetsIntervention: "",
-    nomDemandeur: "",
-    signatureDateDemandeur: "",
-    nomSuperieur: "",
-    signatureDateSuperieur: "",
+    nom: existingData.nom || "", 
+    prenom: existingData.prenom || "",
+    service: existingData.service || "",
+    interventionType: existingData.interventionType || { distance: false, presentiel: false },
+    lieuIntervention: existingData.lieuIntervention || "",
+    datesIntervention: existingData.datesIntervention || "",
+    horaires: existingData.horaires || "",
+    totalHeuresSupplementaires: existingData.totalHeuresSupplementaires || "",
+    objetsIntervention: existingData.objetsIntervention || "",
+    nomDemandeur: existingData.nomDemandeur || "",
+    signatureDateDemandeur: existingData.signatureDateDemandeur || "",
+    nomSuperieur: existingData.nomSuperieur || "",
+    signatureDateSuperieur: existingData.signatureDateSuperieur || "",
   };
 
   const [formData, setFormData] = useState(initialState);
-  // hold signature images as data URLs (PNG)
   const [signatureDemandeurUrl, setSignatureDemandeurUrl] = useState(null);
   const [signatureSuperieurUrl, setSignatureSuperieurUrl] = useState(null);
 
-  const handleChange = (e) => {
+  // expose both the backend method and the DOM node for printing
+  useImperativeHandle(ref, () => ({
+    getFormDataForBackend: () => ({
+      ...formData,
+      signatureDemandeur: signatureDemandeurUrl,
+      signatureSuperieur: signatureSuperieurUrl,
+    }),
+    printNode: formDivRef.current, // ✅ expose DOM node
+  }));
+
+ const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -37,48 +53,64 @@ const FormHeuresSup = forwardRef((props, ref) => {
     }));
   };
 
-  // called when demandeur signature is saved/uploaded
   const onSaveDemandeur = (dataUrl) => {
     setSignatureDemandeurUrl(dataUrl);
-    // auto-fill signature date to today (in ISO-like format dd/mm/yyyy)
     const d = new Date();
-    const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-    setFormData((prev) => ({ ...prev, signatureDateDemandeur: formatted }));
+    const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(
+      d.getMonth() + 1
+    ).padStart(2, "0")}/${d.getFullYear()}`;
+    setFormData((prev) => ({
+      ...prev,
+      signatureDateDemandeur: formatted,
+    }));
   };
 
   const onSaveSuperieur = (dataUrl) => {
     setSignatureSuperieurUrl(dataUrl);
     const d = new Date();
-    const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-    setFormData((prev) => ({ ...prev, signatureDateSuperieur: formatted }));
+    const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(
+      d.getMonth() + 1
+    ).padStart(2, "0")}/${d.getFullYear()}`;
+    setFormData((prev) => ({
+      ...prev,
+      signatureDateSuperieur: formatted,
+    }));
   };
+  useEffect(() => {
+    console.log("Form data updated:", formData);
+  }, [formData]); 
 
+  useEffect(() => {
+    if (existingData && Object.keys(existingData).length > 0) {
+      setFormData({
+        ...formData,
+        ...existingData,
+      });
+      if (existingData.signatureDemandeur) setSignatureDemandeurUrl(existingData.signatureDemandeur);
+    }
+  }, [existingData]);
   return (
-    <>
-      {/* Form container */}
-      <div
-        ref={ref}
+    <div
+        ref={formDivRef}
         className="max-w-2xl mx-auto bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
-        style={{ width: "210mm", minHeight: "297mm" }} // A4 size
+        style={{ width: "210mm", minHeight: "297mm" }}
       >
-        {/* Header */}
         <header className="text-center mb-4">
           <h1 className="text-[14px] font-bold leading-snug">
             DIRECTION DE L'INFORMATIQUE ET DE LA SÉCURITÉ DU RÉSEAU
           </h1>
         </header>
 
-        {/* Form Info */}
         <div className="text-center mb-4">
           <h2 className="text-[13px] font-bold underline mb-1">
             FORMULAIRE DE DÉCLARATION D'HEURES SUPPLÉMENTAIRES
           </h2>
           <p className="text-[12px] text-gray-700">
-            À joindre aux demandes de récupération dans un délai ne dépassant pas 60 jours.
+            À joindre aux demandes de récupération dans un délai ne dépassant
+            pas 60 jours.
           </p>
         </div>
 
-        {/* Fields */}
         <div className="text-[13px] mb-6">
           <p className="mb-2">
             <span className="font-bold mr-2">NOM :</span>
@@ -193,14 +225,16 @@ const FormHeuresSup = forwardRef((props, ref) => {
           </p>
         </div>
 
-        {/* Signature Section */}
         <div className="text-[14px] my-6">
-          <h3 className="text-[13px] font-bold underline mb-2">Ont signé ce formulaire :</h3>
+          <h3 className="text-[13px] font-bold underline mb-2">
+            Ont signé ce formulaire :
+          </h3>
 
-          {/* Demandeur */}
           <div style={{ marginBottom: 12 }}>
             <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">Nom du demandeur :</span>
+              <span className="font-bold mr-2 text-[13px]">
+                Nom du demandeur :
+              </span>
               <input
                 name="nomDemandeur"
                 value={formData.nomDemandeur}
@@ -211,7 +245,9 @@ const FormHeuresSup = forwardRef((props, ref) => {
             </p>
 
             <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">Signature Date :</span>
+              <span className="font-bold mr-2 text-[13px]">
+                Signature Date :
+              </span>
               <input
                 name="signatureDateDemandeur"
                 value={formData.signatureDateDemandeur}
@@ -222,13 +258,31 @@ const FormHeuresSup = forwardRef((props, ref) => {
             </p>
 
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature demandeur:</div>
-              <SignatureField onSave={onSaveDemandeur} initialDataUrl={signatureDemandeurUrl} />
+              <div style={{ fontSize: 12, marginBottom: 6 }}>
+                Signature demandeur:
+              </div>
+              <SignatureField
+                onSave={onSaveDemandeur}
+                initialDataUrl={signatureDemandeurUrl}
+              />
               <div style={{ marginTop: 8 }}>
                 {signatureDemandeurUrl ? (
-                  <img src={signatureDemandeurUrl} alt="demandeur-signature" style={{ width: "50mm", border: "1px solid #eee" }} />
+                  <img
+                    src={signatureDemandeurUrl}
+                    alt="demandeur-signature"
+                    style={{ width: "50mm", border: "1px solid #eee" }}
+                  />
                 ) : (
-                  <div style={{ height: 28, border: "1px dashed #ddd", display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
+                  <div
+                    style={{
+                      height: 28,
+                      border: "1px dashed #ddd",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#999",
+                    }}
+                  >
                     No signature saved
                   </div>
                 )}
@@ -236,10 +290,11 @@ const FormHeuresSup = forwardRef((props, ref) => {
             </div>
           </div>
 
-          {/* Superieur */}
           <div>
             <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">Nom du supérieur :</span>
+              <span className="font-bold mr-2 text-[13px]">
+                Nom du supérieur :
+              </span>
               <input
                 name="nomSuperieur"
                 value={formData.nomSuperieur}
@@ -250,7 +305,9 @@ const FormHeuresSup = forwardRef((props, ref) => {
             </p>
 
             <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">Signature Date :</span>
+              <span className="font-bold mr-2 text-[13px]">
+                Signature Date :
+              </span>
               <input
                 name="signatureDateSuperieur"
                 value={formData.signatureDateSuperieur}
@@ -261,7 +318,9 @@ const FormHeuresSup = forwardRef((props, ref) => {
             </p>
 
             <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">signature de supérieur  :</span>
+              <span className="font-bold mr-2 text-[13px]">
+                signature de supérieur :
+              </span>
               <input
                 name="nomSuperieur"
                 value={formData.nomSuperieur}
@@ -273,10 +332,11 @@ const FormHeuresSup = forwardRef((props, ref) => {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="text-center text-[11px] text-gray-600 mt-4">Page 1 sur 1</footer>
+        <footer className="text-center text-[11px] text-gray-600 mt-4">
+          Page 1 sur 1
+        </footer>
       </div>
-    </>
+    
   );
 });
 

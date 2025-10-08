@@ -30,7 +30,7 @@ console.log("process env", process.env.MONGO_URI);
 
 mongoose
   .connect(
-    process.env.MONGO_URI , {
+    'mongodb://localhost:27017/local', {
         // remove:
    useNewUrlParser: true,
    useUnifiedTopology: true ,
