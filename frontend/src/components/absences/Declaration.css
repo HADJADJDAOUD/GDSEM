@@ -5,7 +5,7 @@ body {
   line-height: 1.6;
   color: #000;
   margin: 0;
-  padding: 30px;
+  
   background-color: #f9f9f9;
 }
 
@@ -22,6 +22,7 @@ body {
 .official-header {
   display: flex;
   align-items: center;
+  justify-items: space-between;
   background-color: #333;
   color: #fff;
   padding: 10px;
@@ -39,7 +40,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #333;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
 }
 
@@ -47,37 +48,40 @@ body {
   flex-grow: 1;
   text-align: right;
   line-height: 1.2;
+  
+align-self: center;
+  justify-self: center;
 }
 
 .arabic-text {
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   margin: 0;
 }
 
 .french-text {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
 }
 
 .sub-text {
-  font-size: 12px;
+  font-size: 16px;
   margin: 0;
 }
 
 .bold-underline {
-  font-weight: bold;
+  font-weight: 600;
   text-decoration: underline;
 }
 
 /* --- Titles --- */
 .declaration-title {
   text-align: center;
-  font-size: 20px;
+  font-size: 25px;
   font-weight: bold;
   text-decoration: underline;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
 }
 
 .form-subtitle {
@@ -90,20 +94,20 @@ body {
 
 /* --- Consecutif Section (Radio Buttons) --- */
 .consecutif-section {
-  font-size: 14px;
+  font-size: 16px;
   margin-left: 20px;
   margin-bottom: 30px;
 }
 
 .consecutif-title {
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .question-row {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .question-text {
@@ -135,14 +139,14 @@ body {
 
 /* --- Personal Info Fields (Revised Inputs) --- */
 .fields-section {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
 }
 
 .field-line {
   display: flex;
   align-items: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .label-text {
@@ -176,7 +180,7 @@ body {
 .immatriculation-revised {
   border: 1px solid #000; /* Solid border for the immatriculation number */
   height: 1.5em;
-  padding: 2px 5px;
+  padding: 2px 10px;
   width: 250px;
   flex-grow: 0;
 }
@@ -236,7 +240,7 @@ body {
   margin-top: 30px;
   border-top: 1px solid #ccc;
   padding-top: 10px;
-  font-size: 11px;
+  font-size: 13px;
   position: relative;
 }
 

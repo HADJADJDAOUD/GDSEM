@@ -24,6 +24,9 @@ const {
   getAllDeclarations,
   getAllTransportDeclarations,
   getAllDemandesPrestations,
+  updateStatus,
+  acceptAllPending,
+  
 } = require("../controllers/adminFormsController");
 
 //////////
@@ -107,5 +110,10 @@ router.get("/admin-transport", protect, restrictTo("RH", "DRH"), getAllTransport
 
 // GET /api/admin/demandesPrestations
 router.get("/admin-demandesPrestations", protect, restrictTo("RH", "DRH"), getAllDemandesPrestations)
+
+router.patch("/admin-update/:type/:id", protect, restrictTo("RH", "DRH"), updateStatus);
+
+// accept all pending of a type
+router.post("/admin-acceptAll/:type", protect, restrictTo("RH", "DRH"), acceptAllPending);
 
 module.exports = router;  

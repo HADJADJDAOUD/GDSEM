@@ -26,11 +26,13 @@ const formHeuresSupSchema = new mongoose.Schema(
     // 🖋️ Signatures and names
     nomDemandeur: String,
     signatureDateDemandeur: String,
+    status: { type: String, enum: ["pending", "accepted", "refused"], default: "pending" },
     signatureDemandeur: String, // base64 image URL
 
     nomSuperieur: String,
     signatureDateSuperieur: String,
     signatureSuperieur: String, // base64 image URL
+    
   },
   {
     timestamps: true, // createdAt, updatedAt

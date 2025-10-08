@@ -106,8 +106,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
   return (
     <div
         ref={formDivRef}
-        className="max-w-2xl  bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
-        style={{ width: "210mm", minHeight: "297mm" }}
+        className="m-auto  bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
+        style={{ width: "210mm", minHeight:"265mm" }}
       >
         <header className="text-center mb-4">
           <h1 className="text-[14px] font-bold leading-snug">
@@ -125,19 +125,19 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
           </p>
         </div>
 
-        <div className="text-[13px] mb-6">
-          <p className="mb-2">
+        <div className="text-[16px] mb-6">
+          <p className="mb-4">
             <span className="font-bold mr-2">NOM :</span>
             <input
               name="nom"
               value={formData.nom}
               onChange={handleChange}
               type="text"
-              className="border-0 border-b border-dashed border-black outline-none w-3/4 bg-transparent"
+              className="border-0   border-b border-dashed border-black outline-none w-3/4 bg-transparent"
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">PRÉNOM :</span>
             <input
               name="prenom"
@@ -148,7 +148,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">SERVICE :</span>
             <input
               name="service"
@@ -159,7 +159,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="font-bold mb-2">Type d'intervention :</p>
+          <p className="font-bold mb-4">Type d'intervention :</p>
           <div className="ml-6 mb-4 space-y-1">
             <label className="block text-[13px]">
               <input
@@ -183,7 +183,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             </label>
           </div>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">Lieu :</span>
             <input
               name="lieuIntervention"
@@ -194,7 +194,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">Date(s) :</span>
             <input
               name="datesIntervention"
@@ -205,7 +205,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">Horaires :</span>
             <input
               name="horaires"
@@ -216,7 +216,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">Total heures sup :</span>
             <input
               name="totalHeuresSupplementaires"
@@ -227,7 +227,7 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             />
           </p>
 
-          <p className="mb-2">
+          <p className="mb-4">
             <span className="font-bold mr-2">Objet(s) :</span>
             <input
               name="objetsIntervention"
@@ -239,14 +239,14 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
           </p>
         </div>
 
-        <div className="text-[14px] my-6">
-          <h3 className="text-[13px] font-bold underline mb-2">
+        <div className="text-[16px] my-6">
+          <h3 className="text-[16px] font-bold underline mb-4">
             Ont signé ce formulaire :
           </h3>
 
           <div style={{ marginBottom: 12 }}>
-            <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">
+            <p className="flex items-baseline mb-4">
+              <span className="font-bold mr-2 text-[16px]">
                 Nom du demandeur :
               </span>
               <input
@@ -258,8 +258,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
               />
             </p>
 
-            <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">
+            <p className="flex items-baseline mb-4">
+              <span className="font-bold mr-2 text-[16px]">
                 Signature Date :
               </span>
               <input
@@ -279,8 +279,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
             <div className="no-print" style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
               <SignatureField
-                onSave={handleSaveSignature}
-                initialDataUrl={signatureUrl}
+                onSave={onSaveDemandeur}
+                initialDataUrl={signatureDemandeurUrl}
               />
             </div>
           )}
@@ -310,8 +310,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
           </div>
 
           <div>
-            <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">
+            <p className="flex items-baseline mb-4">
+              <span className="font-bold mr-2 text-[16px]">
                 Nom du supérieur :
               </span>
               <input
@@ -323,8 +323,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
               />
             </p>
 
-            <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">
+            <p className="flex items-baseline mb-4">
+              <span className="font-bold mr-2 text-[16px]">
                 Signature Date :
               </span>
               <input
@@ -336,8 +336,8 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
               />
             </p>
 
-            <p className="flex items-baseline mb-2">
-              <span className="font-bold mr-2 text-[13px]">
+            <p className="flex items-baseline mb-4">
+              <span className="font-bold mr-2 text-[16px]">
                 signature de supérieur :
               </span>
               <input

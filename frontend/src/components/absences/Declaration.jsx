@@ -31,7 +31,7 @@ const Declaration = forwardRef(({ existingData = {} }, ref) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const onSaveAgent = (dataUrl) => {
+  const handlesave = (dataUrl) => {
     setSignatureAgentUrl(dataUrl);
   };
 
@@ -44,7 +44,7 @@ const Declaration = forwardRef(({ existingData = {} }, ref) => {
   }), [formData, signatureAgentUrl]);
 useEffect(() => {
   if (existingData && Object.keys(existingData).length > 0) {
-    console.log("this is existingData in Declaration:", existingData.signatureAgent);
+    
     setFormData({
       ...formData,
       ...existingData,
@@ -72,7 +72,7 @@ useEffect(() => {
         <div className="logo-placeholder">CNAS</div>
         <div className="header-text">
           <p className="arabic-text">وزارة العمل والتشغيل والضمان الاجتماعي</p>
-          <p className="french-text">Caisse Nationale des Assurances Sociales</p>
+          
           <p className="sub-text">الصندوق الوطني للتأمينات الإجتماعية للعمال الأجراء</p>
           <p className="sub-text bold-underline">- Assurances Sociales -</p>
         </div>
@@ -239,8 +239,8 @@ useEffect(() => {
             <div className="no-print" style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
               <SignatureField
-                onSave={handleSaveSignature}
-                initialDataUrl={signatureUrl}
+                onSave={handlesave}
+                initialDataUrl={signatureAgentUrl}
               />
             </div>
           )}

@@ -15,6 +15,12 @@ export default function PrintDeclarationPage({ existingData }) {
       body { -webkit-print-color-adjust: exact; }
       .no-print { display: none !important; }
       img { -webkit-print-color-adjust: exact; }
+      .official-header {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      background-color: #333 !important;
+      color: white !important; /* if you have white text */
+    }
     `,
   });
 
@@ -60,18 +66,18 @@ export default function PrintDeclarationPage({ existingData }) {
   return (
     <div className="p-4">
       <button
-        onClick={handleSend}
-        className="px-3 py-1 border rounded hover:bg-gray-100 mr-2"
-      >
-        Send to Backend
-      </button>
+  onClick={handleSend}
+  className="px-4 py-2 cursor-pointer bg-blue-600 text-white font-medium rounded border border-blue-700 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition mr-3"
+>
+  Submit
+</button>
 
-      <button
-        onClick={handleSafePrint}
-        className="px-3 py-1 border rounded hover:bg-gray-100"
-      >
-        Export PDF (A4)
-      </button>
+<button
+  onClick={handlePrint}
+  className="px-4 py-2 cursor-pointer bg-white text-gray-800 font-medium rounded border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition"
+>
+  Export PDF (A4)
+</button>
 
       {/* ✅ Critical: wrap in div with ref for printing */}
       <div ref={formContainerRef}>

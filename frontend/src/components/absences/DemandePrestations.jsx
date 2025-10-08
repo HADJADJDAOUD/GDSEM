@@ -73,7 +73,7 @@ useEffect(() => {
 }, [existingData]);
   return (
     // ❌ Remove <form> — it's not needed and can confuse refs
-    <div className="form-container" dir="rtl" lang="fr">
+    <div className="form-container print-page-245" dir="rtl" lang="fr">
       {/* Header */}
       <header className="header">
         <div className="logo-placeholder"></div>

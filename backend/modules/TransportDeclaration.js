@@ -16,7 +16,7 @@ const transportDeclarationSchema = new mongoose.Schema(
     qualite: { type: String }, // e.g., "Agent", "Cadre", etc.
     lieuTravail: { type: String }, // Direction / Centre rattaché
     distanceKm: { type: String },
-
+status: { type: String, enum: ["pending", "accepted", "refused"], default: "pending" },
     // ✍️ Signature
     signatureInterested: { type: String },
   },

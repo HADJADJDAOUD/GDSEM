@@ -136,6 +136,7 @@ export default function ViewRequestedForms() {
                 <th className="p-3 border-b">Type</th>
                 <th className="p-3 border-b">Name</th>
                 <th className="p-3 border-b">Date</th>
+                <th className="p-3 border-b">Status</th>
                 <th className="p-3 border-b text-center">Action</th>
               </tr>
             </thead>
@@ -155,6 +156,25 @@ export default function ViewRequestedForms() {
                       ? new Date(form.createdAt).toLocaleString()
                       : "—"}
                   </td>
+                 <td>
+  {form.status ? (
+    <span
+      className={`px-2 py-1 text-xs font-medium rounded border ${
+        form.status === 'pending'
+          ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+          : form.status === 'accepted'
+          ? 'bg-green-100 text-green-800 border-green-300'
+          : form.status === 'refused'
+          ? 'bg-red-100 text-red-800 border-red-300'
+          : 'bg-gray-100 text-gray-800 border-gray-300'
+      }`}
+    >
+      {form.status.charAt(0).toUpperCase() + form.status.slice(1)}
+    </span>
+  ) : (
+    <span className="text-gray-400">—</span>
+  )}
+</td>
                   <td className="p-3 border-b text-center">
                     <button
                       onClick={() => setSelectedForm(form)}

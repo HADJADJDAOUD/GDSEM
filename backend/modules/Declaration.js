@@ -20,9 +20,10 @@ const declarationSchema = new mongoose.Schema(
     dateDebutArret: { type: String },
     dateFinArret: { type: String },
     lieuResidence: { type: String },
+    status: { type: String, enum: ["pending", "accepted", "refused"], default: "pending" },
     faitA: { type: String },
     faitLe: { type: String },
-
+  
     // Signature (base64 image)
     signatureAgent: { type: String },
   },

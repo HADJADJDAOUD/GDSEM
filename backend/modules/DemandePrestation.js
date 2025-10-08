@@ -25,7 +25,7 @@ const demandePrestationSchema = new mongoose.Schema(
     beneficiaireDateNaissance: { type: String },
     beneficiaireWilaya: { type: String },
     naturePrestation: { type: String },
-
+status: { type: String, enum: ["pending", "accepted", "refused"], default: "pending" },
     // ✍️ Signature
     signature: { type: String },
   },

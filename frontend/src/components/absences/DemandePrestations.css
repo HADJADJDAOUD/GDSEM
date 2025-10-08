@@ -213,3 +213,116 @@ body {
 .contact-info {
   line-height: 1.4;
 }
+/* Printable A4 page: 210mm x 297mm */
+.print-page-a4 {
+  width: 210mm;
+  height: 297mm;           /* Full A4 height */
+  box-sizing: border-box;
+  padding: 10mm;           /* Slightly more generous padding (still safe for printers) */
+  margin: 0;
+  overflow: hidden;        /* Prevents accidental overflow to next page */
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  color: #111;
+  line-height: 1.15;
+}
+
+/* Headings — smaller and tighter */
+.print-page-a4 .header .arabic-title,
+.print-page-a4 .header-text h1,
+.print-page-a4 .form-title {
+  font-size: 14px;
+  margin: 0 0 6px 0;
+  line-height: 1.05;
+}
+
+/* Subtitles and descriptive text */
+.print-page-a4 p,
+.print-page-a4 .label,
+.print-page-a4 .declaration-section p {
+  font-size: 11px;
+  margin: 4px 0;
+}
+
+/* Inputs — smaller and inline-friendly */
+.print-page-a4 input[type="text"],
+.print-page-a4 .input-line {
+  font-size: 11px;
+  padding: 2px 6px;
+  height: auto;
+  line-height: 1.2;
+  border-width: 0 0 1px 0;
+  border-style: dashed;
+  border-color: #000;
+  background: transparent;
+}
+
+/* Checkbox rows: compact, inline */
+.print-page-a4 .checkbox-row,
+.print-page-a4 .checkbox-row.beneficiary-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 6px 0 8px 0;
+}
+
+.print-page-a4 .checkbox-item {
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+}
+
+/* Sections spacing reduced */
+.print-page-a4 .field-section,
+.print-page-a4 .declaration-section,
+.print-page-a4 .reserved-frame {
+  margin-bottom: 8px;
+}
+
+/* Signatures — smaller images */
+.print-page-a4 img[alt*="signature"],
+.print-page-a4 .signature img {
+  width: 40mm !important;
+  max-width: 40mm;
+  display: block;
+}
+
+/* Footer compressed */
+.print-page-a4 .footer,
+.print-page-a4 .footer .contact-info {
+  font-size: 10px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* Avoid large boxes or big dashed frames */
+.print-page-a4 .reserved-frame {
+  padding: 6px 4px;
+  border: 1px solid #ddd;
+  font-size: 11px;
+}
+
+/* Hide controls when printing */
+.print-page-a4 .no-print { display: none !important; }
+
+/* Utility: responsive field widths */
+.print-page-a4 .large { width: 60%; }
+.print-page-a4 .medium { width: 45%; }
+.print-page-a4 .small { width: 18%; }
+
+/* Allow long labels to wrap */
+.print-page-a4 .label { word-break: break-word; }
+
+/* Print-specific adjustments */
+@media print {
+  @page {
+    size: A4;
+    margin: 0; /* Let your container handle margins */
+  }
+  .print-page-a4 {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

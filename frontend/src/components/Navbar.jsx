@@ -9,12 +9,7 @@ export default function NavbarWithMenu({ view, setView }) {
   const { user } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("username");
-    localStorage.removeItem("email");
-    localStorage.removeItem("endDate");
-
+    localStorage.clear();
     dispatch(logout());
     navigate("/login", { replace: true });
   };
@@ -31,150 +26,133 @@ export default function NavbarWithMenu({ view, setView }) {
         ]
       : [
           { key: "calendar", label: "Calendrier" },
-          
           { key: "request", label: "Demande d'absence" },
           { key: "rejected", label: "Absences refusées" },
           { key: "myRequests", label: "Mes demandes" },
         ];
 
   return (
-    <header style={styles.header}>
-      <div style={styles.row}>
-        {/* left: logo + brand */}
-        <div style={styles.left}>
-          <img src="/logo.png" alt="Logo" style={styles.logo} />
-          <div style={styles.brand}>Algérie Poste</div>
-        </div>
-
-        {/* inline nav buttons (same row) */}
-        <div style={styles.inlineNav} aria-label="main navigation">
-          {navButtons.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setView(item.key)}
-              style={{
-                ...styles.navButton,
-                ...(view === item.key ? styles.navButtonActive : {}),
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {/* right: user area */}
-        <div style={styles.userArea}>
-          <div style={styles.userInfo}>
-            {user?.role && <div style={styles.role}>{user.role}</div>}
-            <div style={styles.avatar}>
-              {displayName[0]?.toUpperCase() || "U"}
-            </div>
-            <div style={styles.text}>
-              <div style={styles.name}>{displayName}</div>
-
-              {displayEmail && <div style={styles.email}>{displayEmail}</div>}
-            </div>
-          </div>
-
-          <button onClick={handleLogout} style={styles.button}>
-            Sign out
-          </button>
-        </div>
+    <aside style={styles.sidebar}>
+      <div style={styles.logoSection}>
+        <img src="/logo.png" alt="Logo" style={styles.logo} />
+        <div style={styles.brand}>Algérie Poste</div>
       </div>
-    </header>
+
+      <nav style={styles.nav}>
+        {navButtons.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setView(item.key)}
+            style={{
+              ...styles.navButton,
+              ...(view === item.key ? styles.activeButton : {}),
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <div style={styles.footer}>
+        <div style={styles.userInfo}>
+          <div style={styles.avatar}>{displayName[0]?.toUpperCase() || "U"}</div>
+          <div>
+            <div style={styles.name}>{displayName}</div>
+            <div style={styles.email}>{displayEmail}</div>
+            <div style={styles.role}>{user?.role}</div>
+          </div>
+        </div>
+
+        <button onClick={handleLogout} style={styles.logoutButton}>
+          Sign out
+        </button>
+      </div>
+    </aside>
   );
 }
 
 const styles = {
-  header: {
-    width: "100%",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-    fontFamily: "Eurostile, system-ui, sans-serif",
+  sidebar: {
+    width: "240px",
     background:
-      "linear-gradient(90deg, rgb(0, 61, 114) 0%, rgb(0, 91, 172) 50%, rgb(0, 62, 116) 100%)",
+      "linear-gradient(180deg, rgb(0, 61, 114) 0%, rgb(0, 91, 172) 100%)",
     color: "white",
-  },
-  row: {
     display: "flex",
-    alignItems: "center",
-    gap: 12,
+    flexDirection: "column",
     justifyContent: "space-between",
-    padding: "0.6rem 1rem",
+    padding: "1rem 0.8rem",
+    boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
   },
-  left: { display: "flex", alignItems: "center", gap: 12, minWidth: 0 },
+  logoSection: {
+    textAlign: "center",
+    marginBottom: "1rem",
+  },
   logo: {
-    height: 40,
-    width: "auto",
-    borderRadius: 4,
-    objectFit: "contain",
+    height: 50,
+    borderRadius: 6,
     background: "white",
-    padding: "2px 6px",
+    padding: "4px 8px",
   },
-  brand: { fontSize: "1.05rem", fontWeight: 600, whiteSpace: "nowrap" },
-
-  /* Inline nav sits between brand and spacer */
-  inlineNav: {
+  brand: {
+    fontWeight: 600,
+    fontSize: "1.1rem",
+    marginTop: "0.5rem",
+  },
+  nav: {
     display: "flex",
-    gap: 8,
-    alignItems: "center",
-
-    /* allow horizontal scroll on very small widths without wrapping */
-    overflowX: "auto",
-    paddingBottom: 2,
+    flexDirection: "column",
+    gap: "0.4rem",
     flex: 1,
-    justifyContent: "center",
-    padding: "0 10px",
-    maxWidth: "45%" /* keep nav from swallowing whole row; tweak to taste */,
-    whiteSpace: "nowrap",
   },
   navButton: {
-    padding: "8px 12px",
-    borderRadius: 8,
+    padding: "10px 12px",
     border: "none",
-    cursor: "pointer",
+    borderRadius: 8,
     background: "transparent",
     color: "white",
-    fontWeight: 300,
-    opacity: 0.95,
-    whiteSpace: "nowrap",
+    cursor: "pointer",
+    textAlign: "left",
+    fontWeight: 400,
+    transition: "background 0.2s",
   },
-  navButtonActive: {
+  activeButton: {
     background: "white",
-    color: "rgb(50, 70, 83)",
+    color: "rgb(50,70,83)",
+    fontWeight: 600,
   },
-
-  spacer: { flex: 1, minWidth: 8 },
-
-  userArea: { display: "flex", alignItems: "center", gap: 12 },
-  userInfo: { display: "flex", alignItems: "center", gap: 10 },
+  footer: {
+    borderTop: "1px solid rgba(255,255,255,0.3)",
+    paddingTop: "0.8rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.6rem",
+  },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6rem",
+  },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: "50%",
+    background: "rgba(255,255,255,0.2)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(255,255,255,0.15)",
     fontWeight: 700,
     fontSize: "1rem",
-    color: "white",
   },
-  text: { display: "flex", flexDirection: "column", lineHeight: 1.1 },
   name: { fontSize: "0.9rem", fontWeight: 600 },
   email: { fontSize: "0.75rem", color: "rgba(255,255,255,0.9)" },
-  button: {
-    padding: "0.35rem 0.7rem",
+  role: { fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" },
+  logoutButton: {
     border: "1px solid rgba(255,255,255,0.6)",
-    background: "transparent",
-    cursor: "pointer",
     borderRadius: 6,
+    background: "transparent",
     color: "white",
+    cursor: "pointer",
+    padding: "0.4rem 0.7rem",
     fontWeight: 600,
-  },
-  role: {
-    fontSize: "0.85rem",
-    fontWeight: 400,
-    color: "rgba(255,255,255,0.9)",
-    marginTop: 2,
   },
 };

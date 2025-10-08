@@ -1,7 +1,5 @@
 // PrintableAllForms.jsx
 import React, { forwardRef } from "react";
-
-// Presentational components only (must accept `existingData` and not call useReactToPrint)
 import DemandePrestations from "./absences/DemandePrestations";
 import DeclarationDeTransport from "./absences/DeclarationDeTransport";
 import Declaration from "./absences/Declaration";
@@ -9,7 +7,7 @@ import FormHeuresSup from "./FormHeuresSup";
 
 const PrintableAllForms = forwardRef(({ forms = [], currentForm = "DemandePrestations" }, ref) => {
   const renderForm = (form) => {
-    const props = { existingData: form };
+    const props = { existingData: form || {} };
     switch (currentForm) {
       case "DemandePrestations":
         return <DemandePrestations {...props} />;
@@ -25,13 +23,18 @@ const PrintableAllForms = forwardRef(({ forms = [], currentForm = "DemandePresta
   };
 
   return (
-    // THIS must be a DOM node so useReactToPrint can access it.
-    <div ref={ref} className="print-all-root">
-      {forms.map((f) => (
-        <div key={f._id} style={{ pageBreakAfter: "always", marginBottom: 12 }}>
-          {renderForm(f)}
-        </div>
-      ))}
+    // Note: data-print-root helps debugging in devtools
+    <div ref={ref} className="print-all-root" data-print-root>
+      {Array.isArray(forms) && forms.length > 0 ? (
+        forms.map((f, i) => (
+          <div key={f && (f._id || f.id) ? (f._id || f.id) : `print-${i}`} style={{ pageBreakAfter: "always", marginBottom: 12 }}>
+            {renderForm(f)}
+          </div>
+        ))
+      ) : (
+        // keep an empty node so react-to-print still finds something
+        <div style={{ minHeight: 10 }} />
+      )}
     </div>
   );
 });

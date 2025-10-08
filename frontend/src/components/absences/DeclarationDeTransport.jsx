@@ -61,17 +61,17 @@ useEffect(() => {
       // Note: ref is NOT attached here — parent will wrap this in a div with ref
     >
       {/* Header */}
-      <header className="text-left mb-8 text-[11px] leading-tight">
-        <p className="font-bold">EPIC ALGERIE POSTE</p>
-        <p>Direction Générale</p>
-        <p>Direction des Ressources Humaines et de la Formation</p>
-        <p>
+      <header className="text-left mb-8  text-[16px] leading-tight">
+        <p className="font-bold mb-1 ">EPIC ALGERIE POSTE</p>
+        <p className="font-semibold mb-1 ">Direction Générale</p>
+        <p className="font-semibold mb-1 ">Direction des Ressources Humaines et de la Formation</p>
+        <p className="font-semibold mb-1 ">
           Sous -Direction de l'Administration du Personnel et Système d'Information RH
         </p>
       </header>
 
       {/* Title Box */}
-      <div className="text-center border border-black bg-gray-200 font-bold text-[14px] px-4 py-3 mb-10">
+      <div className="text-center border border-black bg-gray-200 font-bold text-[16px] px-4 py-3 mb-10">
         <p>
           Imprimé à servir pour l'octroi de l'indemnité de transport ou son réajustement en cas de changement d'adresse.
         </p>
@@ -83,7 +83,7 @@ useEffect(() => {
       </h2>
 
       {/* Declaration Body */}
-      <div className="text-[14px] mb-16 space-y-6">
+      <div className="text-[16px] font-semibold mb-16 space-y-6">
         <p>
           Je soussigné (e) :
           <input
@@ -93,11 +93,11 @@ useEffect(() => {
             onChange={(e) => handleInputChange("nomPrenom", e.target.value)}
           />
         </p>
-        <p>
+        <p >
           Né (e) :
           <input
             type="text"
-            className="ml-2 border-0 border-b border-dashed border-black outline-none w-3/4 bg-transparent"
+            className="ml-2 border-0 border-b font-semibold border-dashed border-black outline-none w-3/4 bg-transparent"
             value={formData.lieuNaissance}
             onChange={(e) => handleInputChange("lieuNaissance", e.target.value)}
           />
@@ -139,7 +139,7 @@ useEffect(() => {
 
       {/* Signature Section */}
       <div className="flex justify-between text-[14px] text-center my-14 px-14">
-        <div className="w-2/5">
+        <div className="inline ">
           <p>visa et cachet</p>
           <p>de l'APC</p>
           <div className="mt-3 h-16 flex items-center justify-center">
@@ -148,51 +148,54 @@ useEffect(() => {
         </div>
 
         <div className="w-2/5">
-          <p>Signature de</p>
-          <p>l'intéressé (e)</p>
+  <p>Signature de</p>
+  <p>l'intéressé (e)</p>
 
-           {!isRH && (
-            <div className="no-print" style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
-              <SignatureField
-                onSave={handleSaveSignature}
-                initialDataUrl={signatureUrl}
-              />
-            </div>
-          )}
+  {!isRH && (
+    <div className="no-print mb-2">
+      <div className="text-xs mb-1.5">Signature :</div>
+      {/* Pull the signature field left using -ml and reduced width */}
+      <div className="-ml-24 w-[calc(100%+2rem)]"> {/* 2rem = 32px ≈ space taken from left */}
+        <SignatureField
+          onSave={handleSaveInterested}
+          initialDataUrl={signatureInterestedUrl}
+        />
+      </div>
+    </div>
+  )}
 
-          <div style={{ marginTop: 8 }}>
-            {signatureInterestedUrl ? (
-              <img
-                src={signatureInterestedUrl}
-                alt="interested-signature"
-                style={{ width: "50mm", border: "0px solid #eee", display: "block", margin: "0 auto" }}
-              />
-            ) : (
-              <div
-                style={{
-                  height: 28,
-                  border: "1px dashed #ddd",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#999",
-                }}
-              >
-                No signature saved
-              </div>
-            )}
-          </div>
-        </div>
+  <div style={{ marginTop: 8 }}>
+    {signatureInterestedUrl ? (
+      <img
+        src={signatureInterestedUrl}
+        alt="interested-signature"
+        style={{ width: "50mm", display: "block", margin: "0 auto" }}
+      />
+    ) : (
+      <div
+        style={{
+          height: 28,
+          border: "1px dashed #ddd",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#999",
+        }}
+      >
+        No signature saved
+      </div>
+    )}
+  </div>
+</div>
       </div>
 
       {/* Bottom Note */}
-      <div className="my-8 text-[12px]">
+      <div className="my-8 text-[13px]">
         <p>(1) Direction / Centre rattaché</p>
       </div>
 
       {/* Important Box */}
-      <div className="border-t border-black pt-4 text-[12px] space-y-2">
+      <div className="border-t border-black pt-4 text-[13px] space-y-2">
         <p>
           <strong>Important</strong> : Le présent imprimé doit être légalisé par les services concernés de l'APC, qui doit être aussi appuyé par les pièces suivantes :
         </p>
