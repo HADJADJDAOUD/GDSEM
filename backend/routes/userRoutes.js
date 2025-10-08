@@ -19,6 +19,17 @@ const { createDeclaration, getMyDeclarations } = require("../controllers/declara
 const { createTransportDeclaration, getMyTransportDeclarations } = require("../controllers/transportDeclarationController.js");
 const { createDemandePrestation, getMyDemandesPrestations } = require("../controllers/demandePrestationController.js");
 const { protect, restrictTo, verifyToken } = require("../utils/middleware.js");
+const {
+  getAllFormHeuresSup,
+  getAllDeclarations,
+  getAllTransportDeclarations,
+  getAllDemandesPrestations,
+} = require("../controllers/adminFormsController");
+
+//////////
+
+////////////
+//////////
 const uploadRouter = require("./upload.js");
 const router = express.Router();
 
@@ -83,5 +94,18 @@ router.post("/transport", protect, createTransportDeclaration);
 router.get("/transport/me", protect, getMyTransportDeclarations);
 router.post("/demandesPrestations", protect, createDemandePrestation);
 router.get("/demandesPrestations/me", protect, getMyDemandesPrestations);
+
+
+//////////////
+////////////////
+// Admin: get all forms of various types
+router.get("/admin-formHeuresSup", protect, restrictTo("RH", "DRH"), getAllFormHeuresSup);
+router.get("/admin-declarations", protect, restrictTo("RH", "DRH"), getAllDeclarations);
+
+// GET /api/admin/transport
+router.get("/admin-transport", protect, restrictTo("RH", "DRH"), getAllTransportDeclarations);
+
+// GET /api/admin/demandesPrestations
+router.get("/admin-demandesPrestations", protect, restrictTo("RH", "DRH"), getAllDemandesPrestations)
 
 module.exports = router;  

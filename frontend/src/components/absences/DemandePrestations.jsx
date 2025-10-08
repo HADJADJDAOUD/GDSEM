@@ -24,6 +24,18 @@ const DemandePrestations = forwardRef(({ existingData = {} }, ref) => {
     beneficiaireWilaya: existingData.beneficiaireWilaya || "",
     naturePrestation: existingData.naturePrestation || "",
   });
+ const isRH = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return false;
+      const user = JSON.parse(userStr);
+      return user.role === "RH";
+    } catch (e) {
+      console.warn("Failed to parse user from localStorage");
+      return false;
+    }
+  })();
 
   const handleCheckboxChange = (group, value) => {
     setFormData((prev) => {
@@ -242,15 +254,19 @@ useEffect(() => {
           Je déclare sur l’honneur que les renseignements fournis et motifs invoqués ci-dessus sont sincères et véritables.
         </p>
 
-        <div style={{ marginTop: 0 }}>
-          <div className="no-print" style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
-            <SignatureField
-              onSave={handleSaveSignature}
-              initialDataUrl={signatureUrl}
-            />
-          </div>
+      <div style={{ marginTop: 0 }}>
+          {/* Only show signature pad if NOT RH */}
+          {!isRH && (
+            <div className="no-print" style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
+              <SignatureField
+                onSave={handleSaveSignature}
+                initialDataUrl={signatureUrl}
+              />
+            </div>
+          )}
 
+          {/* Always show saved signature (or placeholder) */}
           {signatureUrl ? (
             <img
               src={signatureUrl}
@@ -262,7 +278,7 @@ useEffect(() => {
             <div
               style={{
                 height: 28,
-                border: "1px dashed #ddd",
+                border: "0px dashed #ddd",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

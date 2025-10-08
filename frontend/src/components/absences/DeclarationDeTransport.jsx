@@ -24,6 +24,19 @@ const DeclarationDeTransport = forwardRef(({ existingData = {} }, ref) => {
     setSignatureInterestedUrl(dataUrl);
   };
 
+ const isRH = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return false;
+      const user = JSON.parse(userStr);
+      return user.role === "RH";
+    } catch (e) {
+      console.warn("Failed to parse user from localStorage");
+      return false;
+    }
+  })();
+
   // ✅ Expose data extraction method
   useImperativeHandle(ref, () => ({
     getFormDataForBackend: () => ({
@@ -138,20 +151,22 @@ useEffect(() => {
           <p>Signature de</p>
           <p>l'intéressé (e)</p>
 
-          <div className="no-print" style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 12, marginBottom: 6 }}>Signature intéressé(e):</div>
-            <SignatureField
-              onSave={handleSaveInterested}
-              initialDataUrl={signatureInterestedUrl}
-            />
-          </div>
+           {!isRH && (
+            <div className="no-print" style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
+              <SignatureField
+                onSave={handleSaveSignature}
+                initialDataUrl={signatureUrl}
+              />
+            </div>
+          )}
 
           <div style={{ marginTop: 8 }}>
             {signatureInterestedUrl ? (
               <img
                 src={signatureInterestedUrl}
                 alt="interested-signature"
-                style={{ width: "50mm", border: "1px solid #eee", display: "block", margin: "0 auto" }}
+                style={{ width: "50mm", border: "0px solid #eee", display: "block", margin: "0 auto" }}
               />
             ) : (
               <div

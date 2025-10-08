@@ -7,6 +7,7 @@ import HRDashboard from "./pages/HRDashboard"; // page for RH role
 import UserAbsencesLayout from "./components/PageWithNavbarForUserAbsences";
 import FormHeuresSup from "./components/FormHeuresSup";
 import PrintPage from "./components/PrintableForm";
+import AdminFormsPage from "./components/AdminFormsPage";
 // Wrapper for protected routes
 function ProtectedRoute({ children, role }) {
   const user = useSelector((state) => state.auth.user); // adjust to your slice
@@ -34,7 +35,7 @@ export default function App() {
         />
         {/* Public route */}
         <Route path="/login" element={<Login />} />
-        <Route path='/form' element={<PrintPage />}/>
+        <Route path='/form' element={<AdminFormsPage />}/>
 
         <Route
           path="/dashboard"

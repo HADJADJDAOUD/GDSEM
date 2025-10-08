@@ -3,12 +3,13 @@ import { useSelector } from "react-redux";
 import NavbarWithMenu from "../components/Navbar.jsx";
 
 import CalendarView from "../components/Calendar.jsx";
-import ChartLineInteractive from "../components/ChartLineInteractive.jsx";
+
 import AbsenceRequest from "../components/AbsenceRequest.jsx";
 import AcceptedAbsencesDurationChart from "../components/rhChart.jsx";
 import PendingRequests from "../components/PendingRequests.jsx";
 import RejectedAbsences from "../components/RejectedAbsences.jsx";
 import ViewRequestedForms from "../components/ViewRequestedForms.jsx";
+import AdminFormsPage from "../components/AdminFormsPage.jsx";
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
   const defaultView = user?.role === "RH" ? "rhChart" : "calendar";
@@ -42,6 +43,7 @@ export default function Dashboard() {
             <>
               {view === "rhChart" && <AcceptedAbsencesDurationChart />}
               {view === "Pending" && <PendingRequests />}
+              {view === "AdminFormsPage" && <AdminFormsPage />}
             </>
           )}
         </div>

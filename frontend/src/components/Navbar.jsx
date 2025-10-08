@@ -27,6 +27,7 @@ export default function NavbarWithMenu({ view, setView }) {
       ? [
           { key: "rhChart", label: "Graphique RH" },
           { key: "Pending", label: "Demandes en attente" },
+          { key: "AdminFormsPage", label: "Toutes les demandes" },
         ]
       : [
           { key: "calendar", label: "Calendrier" },

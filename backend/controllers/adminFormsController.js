@@ -1,8 +1,8 @@
 // controllers/adminFormsController.js
-const FormHeuresSup = require("../models/FormHeuresSup");
-const Declaration = require("../models/Declaration");
-const TransportDeclaration = require("../models/TransportDeclaration");
-const DemandePrestation = require("../models/DemandePrestation");
+const FormHeuresSup = require("../modules/FormHeuresSup");
+const Declaration = require("../modules/Declaration");
+const TransportDeclaration = require("../modules/TransportDeclaration");
+const DemandePrestation = require("../modules/DemandePrestation");
 
 const getAllFormHeuresSup = async (req, res) => {
   try {

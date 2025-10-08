@@ -89,10 +89,24 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
       if (existingData.signatureDemandeur) setSignatureDemandeurUrl(existingData.signatureDemandeur);
     }
   }, [existingData]);
+
+
+   const isRH = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return false;
+      const user = JSON.parse(userStr);
+      return user.role === "RH";
+    } catch (e) {
+      console.warn("Failed to parse user from localStorage");
+      return false;
+    }
+  })();
   return (
     <div
         ref={formDivRef}
-        className="max-w-2xl mx-auto bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
+        className="max-w-2xl  bg-white border border-gray-300 p-6 md:p-8 text-black shadow"
         style={{ width: "210mm", minHeight: "297mm" }}
       >
         <header className="text-center mb-4">
@@ -261,16 +275,21 @@ const FormHeuresSup = forwardRef(({ existingData = {} }, ref) => {
               <div style={{ fontSize: 12, marginBottom: 6 }}>
                 Signature demandeur:
               </div>
+               {!isRH && (
+            <div className="no-print" style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
               <SignatureField
-                onSave={onSaveDemandeur}
-                initialDataUrl={signatureDemandeurUrl}
+                onSave={handleSaveSignature}
+                initialDataUrl={signatureUrl}
               />
+            </div>
+          )}
               <div style={{ marginTop: 8 }}>
                 {signatureDemandeurUrl ? (
                   <img
                     src={signatureDemandeurUrl}
                     alt="demandeur-signature"
-                    style={{ width: "50mm", border: "1px solid #eee" }}
+                    style={{ width: "50mm", border: "0px solid #eee" }}
                   />
                 ) : (
                   <div

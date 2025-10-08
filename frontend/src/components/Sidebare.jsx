@@ -6,6 +6,7 @@ import AbsenceRequest from "./AbsenceRequest.jsx";
 import AcceptedAbsencesDurationChart from "./rhChart.jsx";
 import PendingRequests from "./PendingRequests.jsx";
 import RejectedAbsences from "./RejectedAbsences.jsx";
+import AdminFormsPage from "./AdminFormsPage.jsx";
 export default function Sidebare() {
   const [view, setView] = useState("calendar");
   const { user } = useSelector((state) => state.auth);
@@ -67,6 +68,7 @@ export default function Sidebare() {
               <>
                 {navItem("rhChart", "Graphique RH")}
                 {navItem("Pending", "Demandes en attente")}
+                {navItem("AdminFormsPage", "Toutes les demandes")}
               </>
             )}
           </div>
@@ -87,6 +89,8 @@ export default function Sidebare() {
           <>
             {view === "rhChart" && <AcceptedAbsencesDurationChart />}
             {view === "Pending" && <PendingRequests />}
+            {view === "AdminFormsPage" && <AdminFormsPage />}
+
           </>
         )}
       </main>

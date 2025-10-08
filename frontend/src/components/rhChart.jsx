@@ -35,7 +35,7 @@ export default function CompanyAcceptedAbsencesChart() {
         const abs = res?.data?.data || [];
 
         setAllAbsences(Array.isArray(abs) ? abs : []);
-        console.log("Fetched accepted absences:", abs);
+        
       } catch (err) {
         console.error("Failed to fetch accepted absences:", err);
         setError("Failed to load data.");

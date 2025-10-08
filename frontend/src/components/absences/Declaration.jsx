@@ -52,6 +52,19 @@ useEffect(() => {
     if (existingData.signatureAgent) setSignatureAgentUrl(existingData.signatureAgent);
   }
 }, [existingData]);
+
+ const isRH = (() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return false;
+      const user = JSON.parse(userStr);
+      return user.role === "RH";
+    } catch (e) {
+      console.warn("Failed to parse user from localStorage");
+      return false;
+    }
+  })();
   return (
     // Root must be a plain div (no <form>)
     <div className="form-container">
@@ -222,10 +235,15 @@ useEffect(() => {
         <div className="signature-row">
           <div className="signature-column">
             <p>Signature de l'Agent</p>
-            <div className="no-print" style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature Agent:</div>
-              <SignatureField onSave={onSaveAgent} initialDataUrl={signatureAgentUrl} />
+             {!isRH && (
+            <div className="no-print" style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, marginBottom: 6 }}>Signature :</div>
+              <SignatureField
+                onSave={handleSaveSignature}
+                initialDataUrl={signatureUrl}
+              />
             </div>
+          )}
             <div style={{ marginTop: 8 }}>
               {signatureAgentUrl ? (
                 <img
