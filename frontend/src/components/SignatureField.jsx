@@ -203,58 +203,109 @@ export default function SignatureField({
   };
 
   return (
-    <div className="no-print" style={{ border: "1px solid #ddd", padding: 8, display: "inline-block" }}>
-      <div style={{ marginBottom: 8 }}>
-        <button className="button bg-gray-200 border-1 rounded pl-1 pr-1   " onClick={() => setMode("draw")} disabled={mode === "draw"}>
-          Draw
-        </button>
-        <button className="button bg-gray-200 border-1 rounded pl-1 pr-1 "  onClick={() => setMode("upload")} disabled={mode === "upload"} style={{ marginLeft: 8 }}>
-          Upload
-        </button>
-        <button className="button bg-gray-200 border-1 rounded pl-1 pr-1   " onClick={clearCanvas} style={{ marginLeft: 8 }}>
-          Clear
-        </button>
-        <button className="button bg-gray-200 border-1 rounded pl-1 pr-1   " onClick={save} style={{ marginLeft: 8 }}>
-          Save
-        </button>
-        <button className="button bg-gray-200 border-1 rounded pl-1 pr-1   " onClick={download} style={{ marginLeft: 8 }}>
-          Download
-        </button>
-      </div>
-
-      {mode === "draw" && (
-        <div>
-          <canvas
-            ref={canvasRef}
-            style={{ border: "1px solid #ccc", touchAction: "none", display: "block" }}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onPointerOut={handlePointerUp}
-          />
-          <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>Draw signature (touch / mouse / stylus)</div>
-        </div>
-      )}
-
-      {mode === "upload" && (
-        <div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
-          <button className="button bg-gray-200 border-1 rounded pl-1 pr-1   " onClick={triggerFile}>Choose file</button>
-          <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>Upload a scanned signature (PNG/JPG)</div>
-        </div>
-      )}
-
-      <div style={{ marginTop: 10 }}>
-        <div style={{ fontSize: 12, color: "#222" }}>Preview:</div>
-        {dataUrl ? (
-          <img src={dataUrl} alt="signature preview" style={{ width: 300, border: "1px solid #eee", marginTop: 6 }} />
-        ) : (
-          <div style={{ height: 80, border: "1px dashed #ddd", display: "flex", alignItems: "center", justifyContent: "center", color: "#999", marginTop: 6 }}>
-            No signature yet
-          </div>
-        )}
-      </div>
+  <div className="no-print" style={{ border: "1px solid #ddd", padding: 8, display: "inline-block" }}>
+    <div style={{ marginBottom: 8 }}>
+      <button
+        className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+        onClick={() => setMode("draw")}
+        disabled={mode === "draw"}
+      >
+        Dessiner
+      </button>
+      <button
+        className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+        onClick={() => setMode("upload")}
+        disabled={mode === "upload"}
+        style={{ marginLeft: 8 }}
+      >
+        Importer
+      </button>
+      <button
+        className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+        onClick={clearCanvas}
+        style={{ marginLeft: 8 }}
+      >
+        Effacer
+      </button>
+      <button
+        className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+        onClick={save}
+        style={{ marginLeft: 8 }}
+      >
+        Enregistrer
+      </button>
+      <button
+        className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+        onClick={download}
+        style={{ marginLeft: 8 }}
+      >
+        Télécharger
+      </button>
     </div>
-  );
+
+    {mode === "draw" && (
+      <div>
+        <canvas
+          ref={canvasRef}
+          style={{ border: "1px solid #ccc", touchAction: "none", display: "block" }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerOut={handlePointerUp}
+        />
+        <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+          Dessinez la signature (tactile / souris / stylet)
+        </div>
+      </div>
+    )}
+
+    {mode === "upload" && (
+      <div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
+        <button
+          className="button bg-gray-200 border-1 rounded pl-1 pr-1"
+          onClick={triggerFile}
+        >
+          Choisir un fichier
+        </button>
+        <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+          Importez une signature scannée (PNG/JPG)
+        </div>
+      </div>
+    )}
+
+    <div style={{ marginTop: 10 }}>
+      <div style={{ fontSize: 12, color: "#222" }}>Aperçu :</div>
+      {dataUrl ? (
+        <img
+          src={dataUrl}
+          alt="aperçu de la signature"
+          style={{ width: 300, border: "1px solid #eee", marginTop: 6 }}
+        />
+      ) : (
+        <div
+          style={{
+            height: 80,
+            border: "1px dashed #ddd",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#999",
+            marginTop: 6,
+          }}
+        >
+          Aucune signature pour le moment
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 }

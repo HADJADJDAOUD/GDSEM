@@ -50,6 +50,18 @@ export default function PrintDeclarationPage({ existingData }) {
 
       const result = await res.json();
       console.log("✅ Backend response:", result);
+      if (result.success) {
+        alert("Declaration submitted successfully!");
+        // clear form or other actions
+        formRef.current && formRef.current.resetForm && formRef.current.resetForm();
+        // clearing the existingData after successful submission
+        existingData = null;
+        // doing refresh of the page and staying on the same page
+        window.location.reload();
+      } else {
+        alert("❌ Submission failed: " + result.message);
+      }
+      
     } catch (err) {
       console.error("❌ Failed to send declaration:", err);
     }
@@ -69,14 +81,14 @@ export default function PrintDeclarationPage({ existingData }) {
   onClick={handleSend}
   className="px-4 py-2 cursor-pointer bg-blue-600 text-white font-medium rounded border border-blue-700 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition mr-3"
 >
-  Submit
+  Soumettre
 </button>
 
 <button
   onClick={handlePrint}
   className="px-4 py-2 cursor-pointer bg-white text-gray-800 font-medium rounded border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition"
 >
-  Export PDF (A4)
+  Exporter PDF (A4)
 </button>
 
       {/* ✅ Critical: wrap in div with ref for printing */}

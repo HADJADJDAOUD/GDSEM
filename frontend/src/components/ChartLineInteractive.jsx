@@ -140,165 +140,170 @@ export default function ChartLineInteractive() {
     }),
     [chartData]
   );
-
-  if (loading) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>Loading...</CardTitle>
-          <CardDescription>Please wait while the data loads.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (chartData.length === 0) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>No Data</CardTitle>
-          <CardDescription>
-            No absence data found for the selected period.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
+if (loading) {
   return (
     <Card className="py-4 sm:py-0">
-      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
-          <CardTitle>Absence Chart</CardTitle>
-          <CardDescription>
-            Showing total absences for the selected period.
-          </CardDescription>
-        </div>
-        <div className="flex">
-          <button
-            data-active={activeChart === "total"}
-            className="data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:px-8 sm:py-6"
-            onClick={() => setActiveChart("total")}
-          >
-            <span className="text-muted-foreground text-xs">
-              {chartConfig.total.label}
-            </span>
-            <span className="text-lg leading-none font-bold sm:text-3xl">
-              {total.total.toLocaleString()}
-            </span>
-          </button>
-          <button
-            data-active={activeChart === "detailed"}
-            className="data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t border-l px-6 py-4 text-left sm:border-t-0 sm:px-8 sm:py-6"
-            onClick={() => setActiveChart("detailed")}
-          >
-            <span className="text-muted-foreground text-xs">
-              {chartConfig.detailed.label}
-            </span>
-            <span className="text-lg leading-none font-bold sm:text-3xl">
-              {(total.conge + total.maladie).toLocaleString()}
-            </span>
-          </button>
-        </div>
+      <CardHeader>
+        <CardTitle>Chargement...</CardTitle>
+        <CardDescription>Veuillez patienter pendant le chargement des données.</CardDescription>
       </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <div className="flex flex-wrap gap-2 p-2">
-          {["week", "month", "3months", "year"].map((p) => (
-            <button
-              key={p}
-              className={`p-2 rounded-md ${
-                period === p
-                  ? "bg-primary text-white"
-                  : "bg-muted hover:bg-muted/80"
-              }`}
-              onClick={() => setPeriod(p)}
-            >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
-            </button>
-          ))}
-        </div>
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+    </Card>
+  );
+}
+
+if (error) {
+  return (
+    <Card className="py-4 sm:py-0">
+      <CardHeader>
+        <CardTitle>Erreur</CardTitle>
+        <CardDescription>{error}</CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+if (chartData.length === 0) {
+  return (
+    <Card className="py-4 sm:py-0">
+      <CardHeader>
+        <CardTitle>Aucune donnée</CardTitle>
+        <CardDescription>
+          Aucune donnée d'absence trouvée pour la période sélectionnée.
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+return (
+  <Card className="py-4 sm:py-0">
+    <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
+      <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
+        <CardTitle>Graphique des Absences</CardTitle>
+        <CardDescription>
+          Affiche le total des absences pour la période sélectionnée.
+        </CardDescription>
+      </div>
+      <div className="flex">
+        <button
+          data-active={activeChart === "total"}
+          className="data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:px-8 sm:py-6"
+          onClick={() => setActiveChart("total")}
         >
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+          <span className="text-muted-foreground text-xs">
+            {chartConfig.total.label}
+          </span>
+          <span className="text-lg leading-none font-bold sm:text-3xl">
+            {total.total.toLocaleString()}
+          </span>
+        </button>
+        <button
+          data-active={activeChart === "detailed"}
+          className="data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t border-l px-6 py-4 text-left sm:border-t-0 sm:px-8 sm:py-6"
+          onClick={() => setActiveChart("detailed")}
+        >
+          <span className="text-muted-foreground text-xs">
+            {chartConfig.detailed.label}
+          </span>
+          <span className="text-lg leading-none font-bold sm:text-3xl">
+            {(total.conge + total.maladie).toLocaleString()}
+          </span>
+        </button>
+      </div>
+    </CardHeader>
+    <CardContent className="px-2 sm:p-6">
+      <div className="flex flex-wrap gap-2 p-2">
+        {["week", "month", "3months", "year"].map((p) => (
+          <button
+            key={p}
+            className={`p-2 rounded-md ${
+              period === p
+                ? "bg-primary text-white"
+                : "bg-muted hover:bg-muted/80"
+            }`}
+            onClick={() => setPeriod(p)}
           >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                });
-              }}
+            {{
+              week: "Semaine",
+              month: "Mois",
+              "3months": "3 Mois",
+              year: "Année",
+            }[p]}
+          </button>
+        ))}
+      </div>
+      <ChartContainer
+        config={chartConfig}
+        className="aspect-auto h-[250px] w-full"
+      >
+        <LineChart
+          accessibilityLayer
+          data={chartData}
+          margin={{
+            left: 12,
+            right: 12,
+          }}
+        >
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="date"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            minTickGap={32}
+            tickFormatter={(value) => {
+              const date = new Date(value);
+              return date.toLocaleDateString("fr-FR", {
+                month: "short",
+                day: "numeric",
+              });
+            }}
+          />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                className="w-[150px]"
+                nameKey="views"
+                labelFormatter={(value) => {
+                  return new Date(value).toLocaleDateString("fr-FR", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  });
+                }}
+              />
+            }
+          />
+          {activeChart === "total" ? (
+            <Line
+              dataKey="total"
+              type="monotone"
+              stroke={`var(--color-total)`}
+              strokeWidth={2}
+              dot={false}
             />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="views"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    });
-                  }}
-                />
-              }
-            />
-            {activeChart === "total" ? (
+          ) : (
+            <>
               <Line
-                dataKey="total"
+                dataKey="conge"
                 type="monotone"
-                stroke={`var(--color-total)`}
+                stroke={`var(--color-conge)`}
                 strokeWidth={2}
                 dot={false}
               />
-            ) : (
-              <>
-                <Line
-                  dataKey="conge"
-                  type="monotone"
-                  stroke={`var(--color-conge)`}
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  dataKey="maladie"
-                  type="monotone"
-                  stroke={`var(--color-maladie)`}
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </>
-            )}
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+              <Line
+                dataKey="maladie"
+                type="monotone"
+                stroke={`var(--color-maladie)`}
+                strokeWidth={2}
+                dot={false}
+              />
+            </>
+          )}
+        </LineChart>
+      </ChartContainer>
+    </CardContent>
+  </Card>
+);
+
 }

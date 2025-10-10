@@ -292,188 +292,186 @@ export default function AdminFormsPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-6">Admin — Submitted Forms</h1>
+ return (
+  <div className="min-h-screen p-6 bg-gray-50">
+    <h1 className="text-2xl font-semibold mb-6">Admin — Formulaires Soumis</h1>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap justify-center gap-4 mb-8">
-        <button
-          onClick={() => setCurrentForm("DemandePrestations")}
-          className={`px-6 py-3 rounded-xl border ${currentForm === "DemandePrestations" ? "bg-green-100" : "bg-white"}`}
-        >
-          Demandes de Prestations
-        </button>
-        <button
-          onClick={() => setCurrentForm("FormHeuresSup")}
-          className={`px-6 py-3 rounded-xl border ${currentForm === "FormHeuresSup" ? "bg-green-100" : "bg-white"}`}
-        >
-          Heures Supplémentaires
-        </button>
-        <button
-          onClick={() => setCurrentForm("Declaration")}
-          className={`px-6 py-3 rounded-xl border ${currentForm === "Declaration" ? "bg-green-100" : "bg-white"}`}
-        >
-          Declaration d'arrêt de travail
-        </button>
-        <button
-          onClick={() => setCurrentForm("DeclarationDeTransport")}
-          className={`px-6 py-3 rounded-xl border ${currentForm === "DeclarationDeTransport" ? "bg-green-100" : "bg-white"}`}
-        >
-          Déclaration de Transport
-        </button>
+    {/* Onglets */}
+    <div className="flex flex-wrap justify-center gap-4 mb-8">
+      <button
+        onClick={() => setCurrentForm("DemandePrestations")}
+        className={`px-6 py-3 rounded-xl border ${currentForm === "DemandePrestations" ? "bg-green-100" : "bg-white"}`}
+      >
+        Demandes de Prestations
+      </button>
+      <button
+        onClick={() => setCurrentForm("FormHeuresSup")}
+        className={`px-6 py-3 rounded-xl border ${currentForm === "FormHeuresSup" ? "bg-green-100" : "bg-white"}`}
+      >
+        Heures Supplémentaires
+      </button>
+      <button
+        onClick={() => setCurrentForm("Declaration")}
+        className={`px-6 py-3 rounded-xl border ${currentForm === "Declaration" ? "bg-green-100" : "bg-white"}`}
+      >
+        Déclaration d'arrêt de travail
+      </button>
+      <button
+        onClick={() => setCurrentForm("DeclarationDeTransport")}
+        className={`px-6 py-3 rounded-xl border ${currentForm === "DeclarationDeTransport" ? "bg-green-100" : "bg-white"}`}
+      >
+        Déclaration de Transport
+      </button>
+    </div>
+
+    {/* Contrôles */}
+    <div className="flex items-center justify-between max-w-5xl mx-auto mb-4">
+      <div>
+        <strong>{forms.length}</strong> {forms.length <= 1 ? "soumission trouvée" : "soumissions trouvées"}
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between max-w-5xl mx-auto mb-4">
-        <div>
-          <strong>{forms.length}</strong> {forms.length <= 1 ? "submission" : "submissions"} found
-        </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            if (!printComponentRef.current) {
+              console.error("Impression annulée — racine imprimable non montée :", printComponentRef.current);
+              alert("Échec de l'impression : le contenu à imprimer n'est pas prêt. Essayez d'actualiser ou attendez un instant.");
+              return;
+            }
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              if (!printComponentRef.current) {
-                console.error("Print aborted — printable root not mounted:", printComponentRef.current);
-                alert("Print failed: printable content is not ready. Try refreshing or wait a second.");
+            try {
+              reactToPrintHandler(); // appel à react-to-print
+            } catch (err) {
+              console.error("react-to-print a échoué, recours à window.print() :", err);
+
+              // Solution de secours : nouvelle fenêtre et impression via innerHTML
+              const printWindow = window.open("", "_blank");
+              if (!printWindow) {
+                alert("Veuillez autoriser les pop-ups pour l'impression.");
                 return;
               }
+              printWindow.document.open();
+              printWindow.document.write("<!doctype html><html><head>");
+              Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).forEach((node) => {
+                try { printWindow.document.head.appendChild(node.cloneNode(true)); } catch (e) {}
+              });
+              printWindow.document.head.insertAdjacentHTML("beforeend", "<style>.no-print{display:none !important;}</style>");
+              printWindow.document.write("</head><body>");
+              printWindow.document.write(printComponentRef.current.innerHTML);
+              printWindow.document.write("</body></html>");
+              printWindow.document.close();
+              printWindow.focus();
+              setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
+            }
+          }}
+          disabled={forms.length === 0}
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        >
+          Imprimer tout ({forms.length})
+        </button>
 
-              try {
-                reactToPrintHandler(); // call react-to-print
-              } catch (err) {
-                console.error("react-to-print failed, falling back to window.print():", err);
+        <button
+          onClick={acceptAll}
+          disabled={forms.length === 0 || !!actionLoading.acceptAll}
+          className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+        >
+          {actionLoading.acceptAll ? "Acceptation..." : `Tout Accepter (${forms.length})`}
+        </button>
 
-                // Fallback: open new window and print innerHTML of root (works like your single-print fallback)
-                const printWindow = window.open("", "_blank");
-                if (!printWindow) {
-                  alert("Please allow popups for printing.");
-                  return;
-                }
-                printWindow.document.open();
-                printWindow.document.write("<!doctype html><html><head>");
-                // clone styles (best-effort)
-                Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).forEach((node) => {
-                  try { printWindow.document.head.appendChild(node.cloneNode(true)); } catch (e) {}
-                });
-                // safety CSS so UI controls hide
-                printWindow.document.head.insertAdjacentHTML("beforeend", "<style>.no-print{display:none !important;}</style>");
-                printWindow.document.write("</head><body>");
-                printWindow.document.write(printComponentRef.current.innerHTML);
-                printWindow.document.write("</body></html>");
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
-              }
-            }}
-            disabled={forms.length === 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            Print All ({forms.length})
-          </button>
-
-          <button
-            onClick={acceptAll}
-            disabled={forms.length === 0 || !!actionLoading.acceptAll}
-            className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
-          >
-            {actionLoading.acceptAll ? "Accepting..." : `Accept All (${forms.length})`}
-          </button>
-
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 border rounded"
-          >
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="max-w-5xl mx-auto bg-white p-4 rounded shadow">
-        {loading ? (
-          <div>Loading...</div>
-        ) : forms.length === 0 ? (
-          <div className="text-center py-6 text-gray-600">No submissions yet.</div>
-        ) : (
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2">#</th>
-                <th className="p-2">Submitted By</th>
-                <th className="p-2">Name on form</th>
-                <th className="p-2">Date</th>
-                <th className="p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {forms.map((f, idx) => (
-                <tr key={f._id || idx} className="border-b">
-                  <td className="p-2">{idx + 1}</td>
-                  <td className="p-2">{(f.user && (f.user.name || f.user.email)) || "—"}</td>
-                  <td className="p-2">{f.nomPrenoms || f.nom || f.nomPrenom|| "—"}</td>
-                  <td className="p-2">{f.createdAt ? new Date(f.createdAt).toLocaleString() : "—"}</td>
-                  <td className="p-2">
-                    <div className="flex gap-2">
-                      <button onClick={() => setSelectedForm(f)} className="px-3 py-1 border rounded">View</button>
-                      <button onClick={() => handleSinglePrint(f._id)} className="px-3 py-1 border rounded">Print</button>
-
-                      <button
-                        onClick={() => acceptForm(f._id)}
-                        disabled={!!actionLoading[f._id]}
-                        className="px-3 py-1 rounded border bg-green-50 disabled:opacity-50"
-                      >
-                        {actionLoading[f._id] === true ? "..." : "Accept"}
-                      </button>
-
-                      <button
-                        onClick={() => refuseForm(f._id)}
-                        disabled={!!actionLoading[f._id]}
-                        className="px-3 py-1 rounded border bg-red-50 disabled:opacity-50"
-                      >
-                        {actionLoading[f._id] === true ? "..." : "Refuse"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Selected form preview */}
-      {selectedForm && (
-        <div className="max-w-3xl mx-auto mt-6 bg-white rounded shadow p-4">
-          <button onClick={() => setSelectedForm(null)} className="mb-3 text-sm text-gray-600">← Back</button>
-          {renderPrintPreview()}
-        </div>
-      )}
-
-      {/* ✅ HIDDEN PRINTABLE COMPONENT FOR "PRINT ALL" */}
-      <div style={{ position: 'absolute', left: '-10000px', top: 0, width: '210mm' }}>
-          <PrintableAllForms ref={setPrintRootRef} forms={forms} currentForm={currentForm} />
-      </div>
-
-      {/* Fallback DOM for single print (optional) */}
-      <div style={{ display: 'none' }}>
-        {forms.map((f) => (
-          <div id={`print-single-${f._id}`} key={`single-${f._id}`}>
-            <div style={{ pageBreakAfter: "always" }}>
-              {(() => {
-                const props = { existingData: f };
-                switch (currentForm) {
-                  case "DemandePrestations": return <DemandePrestations {...props} />;
-                  case "FormHeuresSup": return <FormHeuresSup {...props} />;
-                  case "Declaration": return <Declaration {...props} />;
-                  case "DeclarationDeTransport": return <DeclarationDeTransport {...props} />;
-                  default: return <div>Unknown</div>;
-                }
-              })()}
-            </div>
-          </div>
-        ))}
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 border rounded"
+        >
+          Actualiser
+        </button>
       </div>
     </div>
-  );
+
+    {/* Tableau */}
+    <div className="max-w-5xl mx-auto bg-white p-4 rounded shadow">
+      {loading ? (
+        <div>Chargement...</div>
+      ) : forms.length === 0 ? (
+        <div className="text-center py-6 text-gray-600">Aucune soumission pour le moment.</div>
+      ) : (
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2">#</th>
+              <th className="p-2">Soumis par</th>
+              <th className="p-2">Nom sur le formulaire</th>
+              <th className="p-2">Date</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {forms.map((f, idx) => (
+              <tr key={f._id || idx} className="border-b">
+                <td className="p-2">{idx + 1}</td>
+                <td className="p-2">{(f.user && (f.user.name || f.user.email)) || "—"}</td>
+                <td className="p-2">{f.nomPrenoms || f.nom || f.nomPrenom || "—"}</td>
+                <td className="p-2">{f.createdAt ? new Date(f.createdAt).toLocaleString() : "—"}</td>
+                <td className="p-2">
+                  <div className="flex gap-2">
+                    <button onClick={() => setSelectedForm(f)} className="px-3 py-1 border rounded">Voir</button>
+                    <button onClick={() => handleSinglePrint(f._id)} className="px-3 py-1 border rounded">Imprimer</button>
+
+                    <button
+                      onClick={() => acceptForm(f._id)}
+                      disabled={!!actionLoading[f._id]}
+                      className="px-3 py-1 rounded border bg-green-50 disabled:opacity-50"
+                    >
+                      {actionLoading[f._id] === true ? "..." : "Accepter"}
+                    </button>
+
+                    <button
+                      onClick={() => refuseForm(f._id)}
+                      disabled={!!actionLoading[f._id]}
+                      className="px-3 py-1 rounded border bg-red-50 disabled:opacity-50"
+                    >
+                      {actionLoading[f._id] === true ? "..." : "Refuser"}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+
+    {/* Aperçu du formulaire sélectionné */}
+    {selectedForm && (
+      <div className="max-w-3xl mx-auto mt-6 bg-white rounded shadow p-4">
+        <button onClick={() => setSelectedForm(null)} className="mb-3 text-sm text-gray-600">← Retour</button>
+        {renderPrintPreview()}
+      </div>
+    )}
+
+    {/* ✅ COMPOSANT CACHÉ IMPRIMABLE POUR "IMPRIMER TOUT" */}
+    <div style={{ position: 'absolute', left: '-10000px', top: 0, width: '210mm' }}>
+      <PrintableAllForms ref={setPrintRootRef} forms={forms} currentForm={currentForm} />
+    </div>
+
+    {/* DOM de secours pour impression unique (optionnel) */}
+    <div style={{ display: 'none' }}>
+      {forms.map((f) => (
+        <div id={`print-single-${f._id}`} key={`single-${f._id}`}>
+          <div style={{ pageBreakAfter: "always" }}>
+            {(() => {
+              const props = { existingData: f };
+              switch (currentForm) {
+                case "DemandePrestations": return <DemandePrestations {...props} />;
+                case "FormHeuresSup": return <FormHeuresSup {...props} />;
+                case "Declaration": return <Declaration {...props} />;
+                case "DeclarationDeTransport": return <DeclarationDeTransport {...props} />;
+                default: return <div>Inconnu</div>;
+              }
+            })()}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 }

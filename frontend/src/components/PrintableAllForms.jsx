@@ -18,7 +18,7 @@ const PrintableAllForms = forwardRef(({ forms = [], currentForm = "DemandePresta
       case "DeclarationDeTransport":
         return <DeclarationDeTransport {...props} />;
       default:
-        return <div>Unknown form</div>;
+        return <div>forme inconnue</div>;
     }
   };
 

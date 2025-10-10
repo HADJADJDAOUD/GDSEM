@@ -214,250 +214,255 @@ export default function CompanyAcceptedAbsencesChart() {
   };
 
   if (loading) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>Loading...</CardTitle>
-          <CardDescription>Please wait while the data loads.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (!chartData || chartData.length === 0) {
-    return (
-      <Card className="py-4 sm:py-0">
-        <CardHeader>
-          <CardTitle>No Data</CardTitle>
-          <CardDescription>
-            No accepted absence data found for the selected period.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  const sortedTypes = [...allTypes].sort(
-    (a, b) => requestTypeTotals[b] - requestTypeTotals[a]
-  );
-
   return (
     <Card className="py-4 sm:py-0">
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between !p-0">
-        <div className="flex flex-col px-6 pb-2 sm:pb-0">
-          <CardTitle>Accepted Absences (Company)</CardTitle>
-          <CardDescription>
-            Daily number of absence days during the selected period.
-          </CardDescription>
-        </div>
-
-        <div className="flex gap-3 px-4 pb-2 sm:pb-0">
-          <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[110px]">
-            <span className="text-xs text-muted-foreground">Total Days</span>
-            <strong className="text-lg">{overallTotal.toLocaleString()}</strong>
-          </div>
-          <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[140px]">
-            <span className="text-xs text-muted-foreground">Avg. per day</span>
-            <strong className="text-lg">
-              {stats.avgPerDay.toLocaleString()}
-            </strong>
-            <span className="text-xs text-muted-foreground">
-              over {stats.days} days
-            </span>
-          </div>
-          <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[170px]">
-            <span className="text-xs text-muted-foreground">Peak day</span>
-            <strong className="text-lg">
-              {stats.peak.value} day{stats.peak.value > 1 ? "s" : ""} on{" "}
-              {stats.peak.date
-                ? new Date(stats.peak.date).toLocaleDateString()
-                : "—"}
-            </strong>
-          </div>
-          <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[140px]">
-            <span className="text-xs text-muted-foreground">
-              Most common type
-            </span>
-            <strong className="text-lg">
-              {stats.mostCommonType.type
-                ? chartConfig[stats.mostCommonType.type]?.label ||
-                  stats.mostCommonType.type
-                : "—"}
-            </strong>
-            <span className="text-xs text-muted-foreground">
-              {stats.mostCommonType.value.toLocaleString()} days
-            </span>
-          </div>
-        </div>
+      <CardHeader>
+        <CardTitle>Chargement...</CardTitle>
+        <CardDescription>Veuillez patienter pendant le chargement des données.</CardDescription>
       </CardHeader>
-
-      <CardContent className="px-2 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-2">
-          <div className="flex gap-2 items-center">
-            {["week", "month", "3months", "year"].map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`
-                  px-4 py-2 rounded-lg text-base font-medium transition-all duration-200
-                  ${
-                    period === p
-                      ? "bg-[#fec834] text-gray-900 shadow-lg scale-105"
-                      : "bg-gray-100 hover:bg-gray-200 text-gray-800 hover:scale-[1.02] shadow-sm"
-                  }
-                `}
-                aria-pressed={period === p}
-              >
-                {p === "3months"
-                  ? "3 months"
-                  : p.charAt(0).toUpperCase() + p.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[300px] w-full"
-          >
-            <AreaChart data={chartData} margin={{ left: 12, right: 12 }}>
-              <defs>
-                {allTypes.map((type) => (
-                  <linearGradient
-                    key={type}
-                    id={`fill${type}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={chartConfig[type].color}
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={chartConfig[type].color}
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid vertical={false} strokeOpacity={0.06} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={period === "week" ? 10 : 32}
-                tickFormatter={tickFormatter}
-              />
-              <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    className="w-[200px]"
-                    labelFormatter={(value) =>
-                      new Date(value).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    }
-                    indicator="dot"
-                  />
-                }
-              />
-              {allTypes.map((type) => (
-                <Area
-                  key={type}
-                  dataKey={type}
-                  type="natural"
-                  fill={`url(#fill${type})`}
-                  stroke={chartConfig[type].color}
-                  stackId="a"
-                />
-              ))}
-              <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
-          </ChartContainer>
-        </div>
-
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">
-            Absence Requests Breakdown
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Type
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Requests
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Percentage
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedTypes.map((type) => {
-                  const total = requestTypeTotals[type] || 0;
-                  const percentage =
-                    requestTotal > 0 ? (total / requestTotal) * 100 : 0;
-                  return (
-                    <tr key={type}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {chartConfig[type]?.label || type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {total.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                            <div
-                              className="bg-blue-600 h-2.5 rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="ml-2 text-sm">
-                            {percentage.toFixed(1)}%
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </CardContent>
     </Card>
   );
+}
+
+if (error) {
+  return (
+    <Card className="py-4 sm:py-0">
+      <CardHeader>
+        <CardTitle>Erreur</CardTitle>
+        <CardDescription>{error}</CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+if (!chartData || chartData.length === 0) {
+  return (
+    <Card className="py-4 sm:py-0">
+      <CardHeader>
+        <CardTitle>Aucune donnée</CardTitle>
+        <CardDescription>
+          Aucune donnée d'absence acceptée trouvée pour la période sélectionnée.
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+const sortedTypes = [...allTypes].sort(
+  (a, b) => requestTypeTotals[b] - requestTypeTotals[a]
+);
+
+return (
+  <Card className="py-4 sm:py-0">
+    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between !p-0">
+      <div className="flex flex-col px-6 pb-2 sm:pb-0">
+        <CardTitle>Absences acceptées (Entreprise)</CardTitle>
+        <CardDescription>
+          Nombre quotidien de jours d'absence pendant la période sélectionnée.
+        </CardDescription>
+      </div>
+
+      <div className="flex gap-3 px-4 pb-2 sm:pb-0">
+        <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[110px]">
+          <span className="text-xs text-muted-foreground">Jours totaux</span>
+          <strong className="text-lg">{overallTotal.toLocaleString()}</strong>
+        </div>
+        <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[140px]">
+          <span className="text-xs text-muted-foreground">Moyenne par jour</span>
+          <strong className="text-lg">
+            {stats.avgPerDay.toLocaleString()}
+          </strong>
+          <span className="text-xs text-muted-foreground">
+            sur {stats.days} jours
+          </span>
+        </div>
+        <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[170px]">
+          <span className="text-xs text-muted-foreground">Jour de pic</span>
+          <strong className="text-lg">
+            {stats.peak.value} jour{stats.peak.value > 1 ? "s" : ""} le{" "}
+            {stats.peak.date
+              ? new Date(stats.peak.date).toLocaleDateString()
+              : "—"}
+          </strong>
+        </div>
+        <div className="flex flex-col items-start bg-white/5 rounded-md px-4 py-2 min-w-[140px]">
+          <span className="text-xs text-muted-foreground">
+            Type le plus fréquent
+          </span>
+          <strong className="text-lg">
+            {stats.mostCommonType.type
+              ? chartConfig[stats.mostCommonType.type]?.label ||
+                stats.mostCommonType.type
+              : "—"}
+          </strong>
+          <span className="text-xs text-muted-foreground">
+            {stats.mostCommonType.value.toLocaleString()} jours
+          </span>
+        </div>
+      </div>
+    </CardHeader>
+
+    <CardContent className="px-2 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-2">
+        <div className="flex gap-2 items-center">
+          {["week", "month", "3months", "year"].map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`
+                px-4 py-2 rounded-lg text-base font-medium transition-all duration-200
+                ${
+                  period === p
+                    ? "bg-[#fec834] text-gray-900 shadow-lg scale-105"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-800 hover:scale-[1.02] shadow-sm"
+                }
+              `}
+              aria-pressed={period === p}
+            >
+              {p === "3months"
+                ? "3 mois"
+                : p === "week"
+                ? "Semaine"
+                : p === "month"
+                ? "Mois"
+                : "Année"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[300px] w-full"
+        >
+          <AreaChart data={chartData} margin={{ left: 12, right: 12 }}>
+            <defs>
+              {allTypes.map((type) => (
+                <linearGradient
+                  key={type}
+                  id={`fill${type}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor={chartConfig[type].color}
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={chartConfig[type].color}
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid vertical={false} strokeOpacity={0.06} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={period === "week" ? 10 : 32}
+              tickFormatter={tickFormatter}
+            />
+            <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  className="w-[200px]"
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  }
+                  indicator="dot"
+                />
+              }
+            />
+            {allTypes.map((type) => (
+              <Area
+                key={type}
+                dataKey={type}
+                type="natural"
+                fill={`url(#fill${type})`}
+                stroke={chartConfig[type].color}
+                stackId="a"
+              />
+            ))}
+            <ChartLegend content={<ChartLegendContent />} />
+          </AreaChart>
+        </ChartContainer>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4">
+          Répartition des demandes d'absence
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Type
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Demandes
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Pourcentage
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedTypes.map((type) => {
+                const total = requestTypeTotals[type] || 0;
+                const percentage =
+                  requestTotal > 0 ? (total / requestTotal) * 100 : 0;
+                return (
+                  <tr key={type}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {chartConfig[type]?.label || type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {total.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                          <div
+                            className="bg-blue-600 h-2.5 rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="ml-2 text-sm">
+                          {percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 }

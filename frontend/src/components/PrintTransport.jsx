@@ -44,6 +44,14 @@ export default function PrintTransport({ existingData }) {
 
       const result = await res.json();
       console.log("✅ Backend response:", result);
+      if (result.success) {
+        alert("Déclaration de transport submitted successfully!");
+        formRef.current && formRef.current.resetForm && formRef.current.resetForm();
+        window.location.reload();
+      } else {
+        alert("❌ Submission failed: " + result.message);
+      }
+      
     } catch (err) {
       console.error("❌ Failed to send transport declaration:", err);
     }
@@ -63,14 +71,14 @@ export default function PrintTransport({ existingData }) {
   onClick={handleSend}
   className="px-4 py-2 cursor-pointer bg-blue-600 text-white font-medium rounded border border-blue-700 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition mr-3"
 >
-  Submit
+  Soumettre
 </button>
 
 <button
   onClick={handlePrint}
   className="px-4 py-2 cursor-pointer bg-white text-gray-800 font-medium rounded border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition"
 >
-  Export PDF (A4)
+  Exporter PDF (A4)
 </button>
 
       {/* ✅ Critical: wrap in div with ref for printing */}
